@@ -26,26 +26,22 @@ export async function POST(req: NextRequest) {
     const ai = new GoogleGenAI({ apiKey });
 
     let documentText = "";
-    const imageParts: { inlineData: { data: string; mimeType: string } }[] = [];
+    const fileParts: { inlineData: { data: string; mimeType: string } }[] = [];
 
     // Xử lý từng file
     for (const file of files) {
       const buffer = Buffer.from(await file.arrayBuffer());
-      if (file.type === "application/pdf") {
-        const pdfParseModule = await import("pdf-parse");
-        const pdfParse = (pdfParseModule as any).default || pdfParseModule;
-        const pdfData = await pdfParse(buffer);
-        documentText += `\n--- Tài liệu: ${file.name} ---\n${pdfData.text}\n`;
-      } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-        const result = await mammoth.extractRawText({ buffer });
-        documentText += `\n--- Tài liệu: ${file.name} ---\n${result.value}\n`;
-      } else if (file.type.startsWith("image/")) {
-        imageParts.push({
+      if (file.type === "application/pdf" || file.type.startsWith("image/")) {
+        // Gửi thẳng file PDF và Ảnh cho Gemini dưới dạng Base64
+        fileParts.push({
           inlineData: {
             data: buffer.toString("base64"),
             mimeType: file.type
           }
         });
+      } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+        const result = await mammoth.extractRawText({ buffer });
+        documentText += `\n--- Tài liệu: ${file.name} ---\n${result.value}\n`;
       } else {
         documentText += `\n--- Tài liệu: ${file.name} ---\n(Chưa hỗ trợ định dạng này)\n`;
       }
@@ -101,8 +97,8 @@ Bạn PHẢI trả về dữ liệu dưới dạng JSON (không kèm markdown \`
       parts.push({ text: "\n\n--- NỘI DUNG TÀI LIỆU ---\n\n" + documentText });
     }
     
-    if (imageParts.length > 0) {
-      parts.push(...imageParts);
+    if (fileParts.length > 0) {
+      parts.push(...fileParts);
     }
 
     const modelName = formData.get("model") as string || "gemini-2.5-flash";
