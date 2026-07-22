@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(await file.arrayBuffer());
       if (file.type === "application/pdf") {
         const pdfParseModule = await import("pdf-parse");
-        const pdfParse = pdfParseModule.default || pdfParseModule;
+        const pdfParse = (pdfParseModule as any).default || pdfParseModule;
         const pdfData = await pdfParse(buffer);
         documentText += `\n--- Tài liệu: ${file.name} ---\n${pdfData.text}\n`;
       } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
