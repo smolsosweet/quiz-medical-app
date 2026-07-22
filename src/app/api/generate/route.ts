@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import * as pdfParseImport from "pdf-parse";
-const pdfParse = (pdfParseImport as any).default || pdfParseImport;
 import mammoth from "mammoth";
 import crypto from "crypto";
 
 export const maxDuration = 60; // Tăng giới hạn thời gian chờ của Vercel (Hobby tier tối đa là 60s)
+
+// Fix lỗi import trên Vercel Node runtime
+const pdfParse = require("pdf-parse");
 
 export async function POST(req: NextRequest) {
   try {
