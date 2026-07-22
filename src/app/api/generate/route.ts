@@ -5,6 +5,8 @@ const pdfParse = (pdfParseImport as any).default || pdfParseImport;
 import mammoth from "mammoth";
 import crypto from "crypto";
 
+export const maxDuration = 60; // Tăng giới hạn thời gian chờ của Vercel (Hobby tier tối đa là 60s)
+
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
