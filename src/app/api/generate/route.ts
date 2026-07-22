@@ -8,13 +8,17 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const files = formData.getAll("files") as File[];
-    const apiKey = formData.get("apiKey") as string | null;
     const numQuestionsStr = formData.get("numQuestions") as string | null;
     const scope = formData.get("scope") as string | null;
     const previousQuestionsText = formData.get("previousQuestionsText") as string | null;
+    const apiKey = process.env.GEMINI_API_KEY;
 
-    if (!files || files.length === 0 || !apiKey || !numQuestionsStr) {
+    if (!files || files.length === 0 || !numQuestionsStr) {
       return NextResponse.json({ error: "Thiếu dữ liệu đầu vào." }, { status: 400 });
+    }
+    
+    if (!apiKey) {
+      return NextResponse.json({ error: "Lỗi cấu hình Server: Thiếu API Key." }, { status: 500 });
     }
 
     const numQuestions = parseInt(numQuestionsStr, 10);

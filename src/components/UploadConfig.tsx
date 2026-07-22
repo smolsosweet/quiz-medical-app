@@ -10,8 +10,6 @@ interface Props {
   error: string;
   files: File[];
   setFiles: React.Dispatch<React.SetStateAction<File[]>>;
-  apiKey: string;
-  setApiKey: React.Dispatch<React.SetStateAction<string>>;
   model: string;
   setModel: React.Dispatch<React.SetStateAction<string>>;
   scope: string;
@@ -23,7 +21,6 @@ interface Props {
 export default function UploadConfig({ 
   onGenerate, isGenerating, error,
   files, setFiles, 
-  apiKey, setApiKey, 
   model, setModel, 
   scope, setScope,
   sessions = [], onViewHistory
@@ -110,19 +107,6 @@ export default function UploadConfig({
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
-            Gemini API Key
-          </label>
-          <input 
-            type="password" 
-            className="input-field" 
-            placeholder="Nhập API Key của bạn (bắt buộc)"
-            value={apiKey}
-            onChange={(e) => setApiKey(e.target.value)}
-          />
-        </div>
-        
         <div>
           <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 500 }}>
             Phiên bản AI (Model)

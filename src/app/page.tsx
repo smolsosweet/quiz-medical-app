@@ -21,7 +21,6 @@ export default function Home() {
 
   // Storage states
   const [files, setFiles] = useState<File[]>([]);
-  const [apiKey, setApiKey] = useState("");
   const [model, setModel] = useState("gemini-2.5-flash");
   const [scope, setScope] = useState("");
   const [previousQuestionsText, setPreviousQuestionsText] = useState("");
@@ -44,10 +43,6 @@ export default function Home() {
       setError("Vui lòng tải lên tài liệu.");
       return;
     }
-    if (!apiKey) {
-      setError("Vui lòng nhập Gemini API Key.");
-      return;
-    }
 
     setIsGenerating(true);
     setError("");
@@ -57,7 +52,6 @@ export default function Home() {
       files.forEach(file => {
         formData.append("files", file);
       });
-      formData.append("apiKey", apiKey);
       formData.append("model", model);
       formData.append("numQuestions", numQ.toString());
       if (scope.trim()) {
@@ -160,8 +154,6 @@ export default function Home() {
             error={error}
             files={files}
             setFiles={setFiles}
-            apiKey={apiKey}
-            setApiKey={setApiKey}
             model={model}
             setModel={setModel}
             scope={scope}
