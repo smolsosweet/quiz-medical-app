@@ -72,12 +72,20 @@ export default function Home() {
         body: formData,
       });
 
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Có lỗi xảy ra khi tạo câu hỏi.");
+      const resText = await res.text();
+      let data;
+      try {
+        data = JSON.parse(resText);
+      } catch (parseErr) {
+        if (resText.includes("<!DOCTYPE") || resText.includes("<html") || res.status === 504) {
+          throw new Error("Quá thời gian xử lý của Server (Timeout). Vui lòng chia nhỏ số lượng câu hỏi (ví dụ: 20-30 câu/lần) để đảm bảo hệ thống không bị quá tải!");
+        }
+        throw new Error("Máy chủ trả về dữ liệu không hợp lệ.");
       }
 
-      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Có lỗi xảy ra khi tạo câu hỏi.");
+      }
       if (data.questions && data.questions.length > 0) {
         setQuestions(data.questions);
         setQuizId(prev => prev + 1);
