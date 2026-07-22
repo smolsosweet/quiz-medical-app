@@ -5,9 +5,6 @@ import crypto from "crypto";
 
 export const maxDuration = 60; // Tăng giới hạn thời gian chờ của Vercel (Hobby tier tối đa là 60s)
 
-// Fix lỗi import trên Vercel Node runtime
-const pdfParse = require("pdf-parse");
-
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
@@ -35,6 +32,8 @@ export async function POST(req: NextRequest) {
     for (const file of files) {
       const buffer = Buffer.from(await file.arrayBuffer());
       if (file.type === "application/pdf") {
+        const pdfParseModule = await import("pdf-parse");
+        const pdfParse = pdfParseModule.default || pdfParseModule;
         const pdfData = await pdfParse(buffer);
         documentText += `\n--- Tài liệu: ${file.name} ---\n${pdfData.text}\n`;
       } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
