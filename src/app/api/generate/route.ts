@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
-import pdfParse from "pdf-parse";
+import * as pdfParseImport from "pdf-parse";
+const pdfParse = (pdfParseImport as any).default || pdfParseImport;
 import mammoth from "mammoth";
 import crypto from "crypto";
 

@@ -251,7 +251,7 @@ export default function QuizInterface({
             let isSelected = selectedAnswer === option.label;
             let isCorrectOption = option.label === currentQuestion.correctAnswer;
             
-            let buttonStyle = {
+            let buttonStyle: React.CSSProperties = {
               padding: '1rem 1.5rem',
               borderRadius: '12px',
               borderWidth: '2px',
