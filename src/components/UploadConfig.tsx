@@ -116,9 +116,9 @@ export default function UploadConfig({
             value={model}
             onChange={(e) => setModel(e.target.value)}
           >
-            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Khuyên dùng - Free Tier)</option>
+            <option value="gemini-1.5-flash-latest">Gemini 1.5 Flash (Khuyên dùng - Free Tier)</option>
             <option value="gemini-2.0-flash">Gemini 2.0 Flash (Cần có thẻ Visa/Billing)</option>
-            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Thông minh nhất, giới hạn 2 lần/phút)</option>
+            <option value="gemini-1.5-pro-latest">Gemini 1.5 Pro (Thông minh nhất, giới hạn 2 lần/phút)</option>
             <option value="gemini-1.5-flash-8b">Gemini 1.5 Flash 8B (Nhẹ nhất)</option>
           </select>
         </div>
