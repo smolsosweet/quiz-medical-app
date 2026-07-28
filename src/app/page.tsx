@@ -21,7 +21,7 @@ export default function Home() {
 
   // Storage states
   const [files, setFiles] = useState<File[]>([]);
-  const [model, setModel] = useState("gemini-2.5-flash");
+  const [model, setModel] = useState("gemini-1.5-flash");
   const [scope, setScope] = useState("");
   const [previousQuestionsText, setPreviousQuestionsText] = useState("");
 
