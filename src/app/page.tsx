@@ -77,8 +77,8 @@ export default function Home() {
       try {
         data = JSON.parse(resText);
       } catch (parseErr) {
-        if (resText.includes("<!DOCTYPE") || resText.includes("<html") || res.status === 504) {
-          throw new Error("Quá thời gian xử lý của Server (Timeout). Vui lòng chia nhỏ số lượng câu hỏi (ví dụ: 20-30 câu/lần) để đảm bảo hệ thống không bị quá tải!");
+        if (resText.includes("<!DOCTYPE") || resText.includes("<html") || res.status === 504 || res.status === 502) {
+          throw new Error("Quá thời gian xử lý của Server (Timeout). Tài liệu quá dài khiến AI xử lý lố 100 giây. Vui lòng thử các cách sau: 1) Chọn phiên bản 'Gemini 1.5 Flash 8B' để chạy nhanh gấp đôi. 2) Cắt bớt tài liệu cho ngắn lại. 3) Giảm số lượng câu hỏi xuống 10-20 câu/lần.");
         }
         throw new Error("Máy chủ trả về dữ liệu không hợp lệ.");
       }
