@@ -153,6 +153,14 @@ Bạn PHẢI trả về dữ liệu dưới dạng JSON (không kèm markdown \`
 
   } catch (error: any) {
     console.error("Lỗi xử lý API:", error);
-    return NextResponse.json({ error: error.message || "Lỗi máy chủ nội bộ." }, { status: 500 });
+    
+    let errorMessage = error.message || "Lỗi máy chủ nội bộ.";
+    
+    // Xử lý lỗi quá tải từ server Google Gemini
+    if (errorMessage.includes("503") || errorMessage.includes("high demand") || errorMessage.includes("UNAVAILABLE")) {
+      errorMessage = "Hệ thống AI của Google hiện đang quá tải (High Demand). Vui lòng đợi khoảng 1-2 phút rồi ấn tạo lại nhé!";
+    }
+
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
