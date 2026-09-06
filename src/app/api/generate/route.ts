@@ -101,7 +101,7 @@ Bạn PHẢI trả về dữ liệu dưới dạng JSON (không kèm markdown \`
       parts.push(...fileParts);
     }
 
-    const modelName = formData.get("model") as string || "gemini-1.5-flash-latest";
+    const modelName = formData.get("model") as string || "gemini-2.5-flash";
 
     const response = await ai.models.generateContent({
       model: modelName,
