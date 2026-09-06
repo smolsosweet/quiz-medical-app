@@ -267,7 +267,6 @@ export default function UploadConfig({
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .animate-spin { animation: spin 1s linear infinite; }
       `}} />
-      </div>
 
       {/* Lịch sử các phiên học */}
       {sessions.length > 0 && (
