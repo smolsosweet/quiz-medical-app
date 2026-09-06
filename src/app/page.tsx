@@ -152,7 +152,7 @@ export default function Home() {
   return (
     <>
       <Header />
-      <main className="main-container" style={{ justifyContent: 'center' }}>
+      <main className="main-container">
         {!questions && !isReviewMode ? (
           <UploadConfig 
             onGenerate={(numQ) => handleGenerate(numQ, false)}

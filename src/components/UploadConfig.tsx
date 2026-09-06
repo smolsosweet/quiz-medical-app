@@ -122,7 +122,7 @@ export default function UploadConfig({
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1.5rem', width: '100%' }}>
       <div className="glass-panel animate-fade-in" style={{ width: '100%', padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
-        <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.5rem' }}>Tạo Bộ Trắc Nghiệm Mới</h2>
+        <h2 style={{ textAlign: 'left', marginBottom: '2rem', fontSize: '1.75rem', fontWeight: 700 }}>Tạo Bộ Trắc Nghiệm Mới</h2>
         
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flex: 1 }}>
           {/* Cột trái: Tải file */}

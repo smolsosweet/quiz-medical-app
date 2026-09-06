@@ -192,7 +192,11 @@ export default function QuizInterface({
                         const uAns = round.userAnswers?.[q.id];
                         const isQCorrect = uAns === q.correctAnswer;
                         return (
-                          <div key={q.id}>
+                          <div 
+                            key={q.id} 
+                            className="animate-fade-in" 
+                            style={{ animationDelay: `${idx * 0.1}s`, animationFillMode: 'both' }}
+                          >
                             <h4 style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '1rem' }}>
                               <span style={{ color: isQCorrect ? 'var(--success-color)' : 'var(--error-color)', marginTop: '2px' }} aria-hidden="true">
                                 {isQCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}

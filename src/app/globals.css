@@ -118,9 +118,10 @@ h1 {
 .btn-primary:hover:not(:disabled) {
   background-color: var(--primary-hover);
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
-.btn-primary:active:not(:disabled) {
-  transform: translateY(0);
+.btn-primary:active:not(:disabled), .btn-secondary:active:not(:disabled), .quiz-option:active:not(:disabled) {
+  transform: scale(0.98);
 }
 .btn-primary:disabled, .btn-secondary:disabled {
   opacity: 0.5;
