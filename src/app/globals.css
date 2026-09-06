@@ -1,6 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
 :root {
+  color-scheme: light;
   --bg-color: #f8fafc;
   --text-color: #0f172a;
   --text-muted: #64748b;
@@ -22,11 +21,12 @@
 }
 
 [data-theme='dark'] {
+  color-scheme: dark;
   --bg-color: #0f172a;
   --text-color: #f8fafc;
   --text-muted: #94a3b8;
   --surface-color: #1e293b;
-  --surface-glass: rgba(30, 41, 59, 0.7);
+  --surface-glass: rgba(30, 41, 59, 0.9); /* Tăng độ mờ cho dark mode để dễ nhìn */
   --border-color: #334155;
   
   --primary-color: #60a5fa;
@@ -49,13 +49,18 @@
 }
 
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-inter), sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
-  transition: background-color 0.3s ease, color 0.3s ease;
-  min-height: 100vh;
+  transition: background-color 0.5s ease, color 0.5s ease;
+  height: 100dvh;
+  overflow: hidden; /* Cấm cuộn trang ngoài cùng */
   display: flex;
   flex-direction: column;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+  background-attachment: fixed;
 }
 
 /* Typography */
@@ -76,48 +81,27 @@ h1 {
 /* Common UI utilities */
 .glass-panel {
   background: var(--surface-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.15); /* Mỏng nhẹ chuẩn glass */
+  border-radius: 20px;
+  box-shadow: 
+    var(--shadow-glass),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1); /* Inner refraction */
   padding: 2rem;
-  transition: all 0.3s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+.glass-panel:hover {
+  box-shadow: 
+    0 12px 40px 0 rgba(31, 38, 135, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
-.btn-primary {
-  background-color: var(--primary-color);
-  color: #fff;
-  border: none;
+.btn-primary, .btn-secondary {
   border-radius: 8px;
   padding: 0.75rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s ease;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-}
-
-.btn-primary:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-1px);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-secondary {
-  background-color: transparent;
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
   display: inline-flex;
@@ -126,9 +110,38 @@ h1 {
   gap: 0.5rem;
 }
 
-.btn-secondary:hover {
+.btn-primary {
+  background-color: var(--primary-color);
+  color: #fff;
+  border: none;
+}
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+}
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn-primary:disabled, .btn-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  background-color: transparent;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+.btn-secondary:hover:not(:disabled) {
   background-color: var(--surface-color);
   border-color: var(--primary-color);
+}
+
+/* Focus styles for accessibility */
+.btn-primary:focus-visible, .btn-secondary:focus-visible, .quiz-option:focus-visible, .input-field:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .input-field {
@@ -142,7 +155,6 @@ h1 {
   font-size: 1rem;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 .input-field:focus {
   outline: none;
   border-color: var(--primary-color);
@@ -150,13 +162,29 @@ h1 {
 }
 
 .main-container {
-  max-width: 800px;
+  max-width: 1000px; /* Tăng độ rộng để chứa 2 cột */
   margin: 0 auto;
   padding: 2rem;
   width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
+  overflow-y: auto; /* Cuộn bên trong container */
+}
+
+/* Tinh chỉnh thanh cuộn cho webkit */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
 }
 
 /* Animations */
@@ -169,7 +197,7 @@ h1 {
   animation: fadeIn 0.4s ease-out forwards;
 }
 
-/* Quiz Option Button Hover */
+/* Quiz Option */
 .quiz-option {
   transition: all 0.2s ease;
 }
@@ -177,8 +205,33 @@ h1 {
   border-color: var(--primary-color) !important;
 }
 
+/* Responsive Breakpoints */
+@media (max-width: 600px) {
+  h1 {
+    font-size: 1.75rem;
+  }
+  .main-container {
+    padding: 1rem;
+  }
+  .glass-panel {
+    padding: 1.25rem;
+  }
+  .btn-primary, .btn-secondary {
+    padding: 0.6rem 1rem;
+  }
+}
+
 /* Print Styles */
 @media print {
+  @page {
+    margin: 1.5cm;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   body * {
     visibility: hidden;
   }
@@ -186,14 +239,12 @@ h1 {
     visibility: visible;
   }
   #review-section {
-    position: absolute;
-    left: 0;
-    top: 0;
+    position: relative;
     width: 100%;
     padding: 0;
     margin: 0;
   }
-  .no-print {
+  .no-print, header, .main-container > :not(#review-section) {
     display: none !important;
   }
 }

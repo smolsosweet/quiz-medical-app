@@ -1,23 +1,22 @@
+export type AnswerLabel = "A" | "B" | "C" | "D";
+
+export interface QuestionOption {
+  label: AnswerLabel;
+  text: string;
+}
+
 export interface Question {
   id: string;
   text: string;
-  options: { label: string; text: string }[];
-  correctAnswer: string;
+  options: QuestionOption[];
+  correctAnswer: AnswerLabel;
   explanation: string;
-}
-
-export interface QuizState {
-  questions: Question[];
-  currentQuestionIndex: number;
-  score: number;
-  userAnswers: Record<string, string>; // questionId -> label ("A", "B", etc.)
-  isFinished: boolean;
 }
 
 export interface QuizRound {
   id: string; // ID của vòng thi, ví dụ: "Lần 1"
   questions: Question[];
-  userAnswers: Record<string, string>; // Lưu lại câu trả lời
+  userAnswers: Record<string, AnswerLabel>; // Lưu lại câu trả lời
 }
 
 export interface QuizSession {

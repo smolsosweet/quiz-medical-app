@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Header from "@/components/Header";
 import UploadConfig from "@/components/UploadConfig";
 import QuizInterface from "@/components/QuizInterface";
-import { Question, QuizSession, QuizRound } from "@/types";
+import { Question, QuizSession, QuizRound, AnswerLabel } from "@/types";
 
 export default function Home() {
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -29,15 +29,6 @@ export default function Home() {
   const [error, setError] = useState<string>("");
   const [quizId, setQuizId] = useState(0);
 
-  const handleStartQuiz = (generatedQuestions: Question[], sessionId: string | null = currentSessionId) => {
-    setQuestions(generatedQuestions);
-    setQuizId(prev => prev + 1);
-    if (!sessionId) {
-      const newSessionId = Date.now().toString();
-      setCurrentSessionId(newSessionId);
-    }
-  };
-
   const handleGenerate = async (numQ: number, isAddingMore = false) => {
     if (files.length === 0) {
       setError("Vui lòng tải lên tài liệu.");
@@ -57,14 +48,14 @@ export default function Home() {
       if (scope.trim()) {
         formData.append("scope", scope.trim());
       }
+      
+      let updatedPrevText = previousQuestionsText;
       if (isAddingMore && questions) {
-        // Collect past questions
         const newPrevText = questions.map(q => q.text).join('\n');
-        const updatedPrevText = previousQuestionsText ? previousQuestionsText + '\n' + newPrevText : newPrevText;
-        setPreviousQuestionsText(updatedPrevText);
+        updatedPrevText = previousQuestionsText ? previousQuestionsText + '\n' + newPrevText : newPrevText;
+      }
+      if (updatedPrevText) {
         formData.append("previousQuestionsText", updatedPrevText);
-      } else if (previousQuestionsText) {
-        formData.append("previousQuestionsText", previousQuestionsText);
       }
 
       const res = await fetch("/api/generate", {
@@ -73,12 +64,12 @@ export default function Home() {
       });
 
       const resText = await res.text();
-      let data;
+      let data: any;
       try {
         data = JSON.parse(resText);
       } catch (parseErr) {
         if (resText.includes("<!DOCTYPE") || resText.includes("<html") || res.status === 504 || res.status === 502) {
-          throw new Error("Quá thời gian xử lý của Server (Timeout). Tài liệu quá dài khiến AI xử lý lố 100 giây. Vui lòng thử các cách sau: 1) Chọn phiên bản 'Gemini 1.5 Flash 8B' để chạy nhanh gấp đôi. 2) Cắt bớt tài liệu cho ngắn lại. 3) Giảm số lượng câu hỏi xuống 10-20 câu/lần.");
+          throw new Error("Quá thời gian xử lý của Server (Timeout). Tài liệu quá dài khiến AI xử lý lố 100 giây. Vui lòng thử các cách sau: 1) Chọn phiên bản 'Gemini 2.5 Flash Lite' để chạy nhanh hơn. 2) Cắt bớt tài liệu. 3) Giảm số lượng câu hỏi.");
         }
         throw new Error("Máy chủ trả về dữ liệu không hợp lệ.");
       }
@@ -88,6 +79,9 @@ export default function Home() {
       }
       if (data.questions && data.questions.length > 0) {
         setQuestions(data.questions);
+        if (isAddingMore) {
+          setPreviousQuestionsText(updatedPrevText);
+        }
         setQuizId(prev => prev + 1);
         if (!currentSessionId) {
           setCurrentSessionId(Date.now().toString());
@@ -95,14 +89,18 @@ export default function Home() {
       } else {
         throw new Error("Không thể tạo câu hỏi từ tài liệu này.");
       }
-    } catch (err: any) {
-      setError(err.message || "Lỗi không xác định.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Lỗi không xác định.");
+      }
     } finally {
       setIsGenerating(false);
     }
   };
 
-  const handleFinishRound = (userAnswers: Record<string, string>) => {
+  const handleFinishRound = (userAnswers: Record<string, AnswerLabel>) => {
     if (questions && currentSessionId) {
       const newRound: QuizRound = {
         id: `Lần ${currentRounds.length + 1}`,

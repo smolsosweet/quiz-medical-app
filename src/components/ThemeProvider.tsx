@@ -17,28 +17,51 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem("theme") as Theme | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.setAttribute("data-theme", savedTheme);
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
-      document.documentElement.setAttribute("data-theme", "dark");
+    let savedTheme: Theme | null = null;
+    try {
+      savedTheme = localStorage.getItem("theme") as Theme | null;
+    } catch (e) {
+      console.warn("localStorage not available");
     }
+
+    const applyTheme = (newTheme: Theme) => {
+      setTheme(newTheme);
+      document.documentElement.setAttribute("data-theme", newTheme);
+    };
+
+    if (savedTheme === "light" || savedTheme === "dark") {
+      applyTheme(savedTheme);
+    } else {
+      applyTheme(window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    }
+
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const handleChange = (e: MediaQueryListEvent) => {
+      try {
+        if (!localStorage.getItem("theme")) {
+          applyTheme(e.matches ? "dark" : "light");
+        }
+      } catch (err) {}
+    };
+    
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
   }, []);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
     document.documentElement.setAttribute("data-theme", newTheme);
+    try {
+      localStorage.setItem("theme", newTheme);
+    } catch (e) {}
   };
 
+  // To avoid SSR hydration mismatch on the theme value while still providing the context,
+  // we can provide a default 'light' theme on the server.
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
-      <div style={{ visibility: mounted ? "visible" : "hidden", display: "contents" }}>
-        {children}
-      </div>
+      {children}
     </ThemeContext.Provider>
   );
 }

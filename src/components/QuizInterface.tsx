@@ -1,15 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Question, QuizRound } from "@/types";
-import { CheckCircle2, XCircle, ChevronRight, RefreshCw, Upload, List, Download } from "lucide-react";
+import { Question, QuizRound, AnswerLabel } from "@/types";
+import { CheckCircle2, XCircle, ChevronRight, RefreshCw, Upload, List, Printer } from "lucide-react";
 
 interface Props {
   questions: Question[];
   isReviewMode?: boolean;
   historyRounds?: QuizRound[];
   onGenerateMore: (numQ: number) => void;
-  onFinishRound?: (userAnswers: Record<string, string>) => void;
+  onFinishRound?: (userAnswers: Record<string, AnswerLabel>) => void;
   isGenerating: boolean;
   error: string;
   onNewFile: () => void;
@@ -26,13 +26,31 @@ export default function QuizInterface({
   onNewFile 
 }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
+  const [userAnswers, setUserAnswers] = useState<Record<string, AnswerLabel>>({});
   const [isFinished, setIsFinished] = useState(isReviewMode);
   const [showReview, setShowReview] = useState(isReviewMode);
   const hasFinishedRef = useRef(false);
   
   const [showAddQuestions, setShowAddQuestions] = useState(false);
   const [newNumQuestions, setNewNumQuestions] = useState(10);
+
+  // Sync state when entering review mode from history
+  useEffect(() => {
+    if (isReviewMode) {
+      setIsFinished(true);
+      setShowReview(true);
+    }
+  }, [isReviewMode]);
+
+  // Reset lock when questions change (new round)
+  useEffect(() => {
+    hasFinishedRef.current = false;
+    setCurrentIndex(0);
+    setUserAnswers({});
+    setIsFinished(false);
+    setShowReview(false);
+    setShowAddQuestions(false);
+  }, [questions]);
 
   useEffect(() => {
     if (isFinished && !isReviewMode && onFinishRound && !hasFinishedRef.current) {
@@ -46,8 +64,8 @@ export default function QuizInterface({
   const selectedAnswer = currentQuestion ? userAnswers[currentQuestion.id] : undefined;
   const isCorrect = currentQuestion ? selectedAnswer === currentQuestion.correctAnswer : false;
 
-  const handleSelectOption = (label: string) => {
-    if (hasAnsweredCurrent || !currentQuestion) return; // Prevent changing answer
+  const handleSelectOption = (label: AnswerLabel) => {
+    if (hasAnsweredCurrent || !currentQuestion) return;
     setUserAnswers((prev) => ({
       ...prev,
       [currentQuestion.id]: label
@@ -81,14 +99,21 @@ export default function QuizInterface({
         {!showReview ? (
           showAddQuestions ? (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>
-              <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Số lượng câu hỏi muốn tạo thêm?</h2>
+              <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Số lượng câu hỏi muốn tạo thêm? (1-50)</h2>
               <input 
                 type="number" 
                 className="input-field" 
                 value={newNumQuestions}
-                onChange={(e) => setNewNumQuestions(Number(e.target.value))}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10);
+                  setNewNumQuestions(isNaN(val) ? 0 : val);
+                }}
+                onBlur={() => {
+                  if (newNumQuestions < 1) setNewNumQuestions(10);
+                  if (newNumQuestions > 50) setNewNumQuestions(50);
+                }}
                 min={1}
-                max={100}
+                max={50}
                 style={{ maxWidth: '200px', margin: '0 auto 1.5rem', display: 'block', textAlign: 'center' }}
               />
               {error && <p style={{ color: 'var(--error-color)', marginBottom: '1rem' }}>{error}</p>}
@@ -103,7 +128,7 @@ export default function QuizInterface({
                 <button 
                   className="btn-primary" 
                   onClick={() => onGenerateMore(newNumQuestions)}
-                  disabled={isGenerating}
+                  disabled={isGenerating || newNumQuestions < 1 || newNumQuestions > 50}
                 >
                   {isGenerating ? "Đang tạo..." : "Tạo thêm"}
                 </button>
@@ -144,8 +169,8 @@ export default function QuizInterface({
             <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2>Xem lại bài làm</h2>
               <div style={{ display: 'flex', gap: '1rem' }}>
-                <button className="btn-primary" onClick={() => window.print()}>
-                  <Download size={20} /> Tải PDF
+                <button className="btn-primary" onClick={() => window.print()} title="In trang này ra PDF">
+                  <Printer size={20} /> In PDF
                 </button>
                 <button className="btn-secondary" onClick={() => {
                   if (isReviewMode) {
@@ -164,12 +189,12 @@ export default function QuizInterface({
                     <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)', borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>{round.id}</h3>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
                       {round.questions.map((q, idx) => {
-                        const uAns = round.userAnswers[q.id];
+                        const uAns = round.userAnswers?.[q.id];
                         const isQCorrect = uAns === q.correctAnswer;
                         return (
                           <div key={q.id}>
                             <h4 style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '1rem' }}>
-                              <span style={{ color: isQCorrect ? 'var(--success-color)' : 'var(--error-color)', marginTop: '2px' }}>
+                              <span style={{ color: isQCorrect ? 'var(--success-color)' : 'var(--error-color)', marginTop: '2px' }} aria-hidden="true">
                                 {isQCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
                               </span>
                               <span>Câu {idx + 1}: {q.text}</span>
@@ -195,6 +220,8 @@ export default function QuizInterface({
                                     display: 'flex', gap: '0.75rem'
                                   }}>
                                     <strong>{opt.label}.</strong> {opt.text}
+                                    {opt.label === q.correctAnswer && <span className="sr-only" style={{position:'absolute', width:1, height:1, padding:0, margin:-1, overflow:'hidden', clip:'rect(0,0,0,0)', border:0}}> - Đáp án đúng</span>}
+                                    {opt.label === uAns && !isQCorrect && <span className="sr-only" style={{position:'absolute', width:1, height:1, padding:0, margin:-1, overflow:'hidden', clip:'rect(0,0,0,0)', border:0}}> - Đáp án của bạn (Sai)</span>}
                                   </div>
                                 );
                               })}
@@ -230,7 +257,13 @@ export default function QuizInterface({
           <span>Câu hỏi {currentIndex + 1} / {questions.length}</span>
           <span>{Math.round(((currentIndex) / questions.length) * 100)}%</span>
         </div>
-        <div style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}>
+        <div 
+          role="progressbar" 
+          aria-valuenow={Math.round(((currentIndex) / questions.length) * 100)} 
+          aria-valuemin={0} 
+          aria-valuemax={100}
+          style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}
+        >
           <div style={{ 
             height: '100%', 
             backgroundColor: 'var(--primary-color)', 
@@ -246,7 +279,7 @@ export default function QuizInterface({
           {currentQuestion.text}
         </h2>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} role="radiogroup" aria-label="Lựa chọn đáp án">
           {currentQuestion.options.map((option) => {
             let isSelected = selectedAnswer === option.label;
             let isCorrectOption = option.label === currentQuestion.correctAnswer;
@@ -288,6 +321,9 @@ export default function QuizInterface({
                 style={buttonStyle}
                 onClick={() => handleSelectOption(option.label)}
                 disabled={hasAnsweredCurrent}
+                aria-pressed={isSelected}
+                role="radio"
+                aria-checked={isSelected}
               >
                 <span style={{ 
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -295,8 +331,8 @@ export default function QuizInterface({
                   backgroundColor: (hasAnsweredCurrent && (isCorrectOption || isSelected)) ? 'transparent' : 'var(--border-color)',
                   fontWeight: 700
                 }}>
-                  {hasAnsweredCurrent && isCorrectOption ? <CheckCircle2 color="var(--success-color)" /> : 
-                   hasAnsweredCurrent && isSelected ? <XCircle color="var(--error-color)" /> : 
+                  {hasAnsweredCurrent && isCorrectOption ? <CheckCircle2 color="var(--success-color)" aria-label="Đúng" /> : 
+                   hasAnsweredCurrent && isSelected ? <XCircle color="var(--error-color)" aria-label="Sai" /> : 
                    option.label}
                 </span>
                 <span style={{ flex: 1 }}>{option.text}</span>
