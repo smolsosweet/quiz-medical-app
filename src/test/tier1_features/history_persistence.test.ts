@@ -10,10 +10,10 @@ import { QuizSession } from '@/types';
 
 describe('Tier 1: History Review & Storage Persistence', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
   });
 
-  it('T1.1.7: returns empty array when localStorage has no sessions', () => {
+  it('T1.1.7: returns empty array when sessionStorage has no sessions', () => {
     const sessions = loadSessionsFromStorage();
     expect(sessions).toEqual([]);
   });
@@ -35,7 +35,7 @@ describe('Tier 1: History Review & Storage Persistence', () => {
 
     clearStorageSessions();
     expect(loadSessionsFromStorage()).toHaveLength(0);
-    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+    expect(sessionStorage.getItem(STORAGE_KEY)).toBeNull();
   });
 
   it('T1.1.10: prepends and limits sessions up to MAX_STORED_SESSIONS (50)', () => {
@@ -76,7 +76,7 @@ describe('Tier 1: History Review & Storage Persistence', () => {
       ],
     };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify([sessionWithCorruptedData]));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify([sessionWithCorruptedData]));
 
     const loaded = loadSessionsFromStorage();
     expect(loaded).toHaveLength(1);

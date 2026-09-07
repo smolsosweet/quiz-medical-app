@@ -7,7 +7,7 @@ import { mockMedicalQuestions } from '@/test/fixtures/quizData';
 
 describe('Tier 3: Cross-Feature Combinations', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 

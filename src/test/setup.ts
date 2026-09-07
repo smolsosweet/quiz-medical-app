@@ -50,7 +50,7 @@ if (typeof window !== 'undefined') {
 // Auto cleanup after each test
 afterEach(() => {
   cleanup();
-  if (typeof window !== 'undefined' && window.localStorage) {
-    window.localStorage.clear();
+  if (typeof window !== 'undefined' && window.sessionStorage) {
+    window.sessionStorage.clear();
   }
 });

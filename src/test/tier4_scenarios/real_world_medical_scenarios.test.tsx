@@ -8,7 +8,7 @@ import { Question } from '@/types';
 
 describe('Tier 4: Real-World Medical Application Scenarios', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 

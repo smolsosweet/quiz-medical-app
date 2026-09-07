@@ -44,7 +44,7 @@ function sanitizeRound(round: unknown, index: number): QuizRound | null {
 }
 
 /**
- * Validates and sanitizes a raw session item from localStorage.
+ * Validates and sanitizes a raw session item from sessionStorage.
  */
 function sanitizeSession(item: unknown): QuizSession | null {
   if (!item || typeof item !== "object") return null;
@@ -73,7 +73,7 @@ function sanitizeSession(item: unknown): QuizSession | null {
 }
 
 /**
- * Safely loads quiz sessions from localStorage with SSR guards and full schema validation.
+ * Safely loads quiz sessions from sessionStorage with SSR guards and full schema validation.
  */
 export function loadSessionsFromStorage(): QuizSession[] {
   if (typeof window === "undefined") {
@@ -81,12 +81,12 @@ export function loadSessionsFromStorage(): QuizSession[] {
   }
 
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
 
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) {
-      console.warn("[Storage] Corrupt sessions data format in localStorage; resetting.");
+      console.warn("[Storage] Corrupt sessions data format in sessionStorage; resetting.");
       return [];
     }
 
@@ -100,13 +100,13 @@ export function loadSessionsFromStorage(): QuizSession[] {
 
     return sessions;
   } catch (error) {
-    console.warn("[Storage] Failed to read sessions from localStorage:", error);
+    console.warn("[Storage] Failed to read sessions from sessionStorage:", error);
     return [];
   }
 }
 
 /**
- * Safely saves quiz sessions to localStorage with SSR guards and quota management.
+ * Safely saves quiz sessions to sessionStorage with SSR guards and quota management.
  */
 export function saveSessionsToStorage(sessions: QuizSession[]): void {
   if (typeof window === "undefined") {
@@ -118,16 +118,16 @@ export function saveSessionsToStorage(sessions: QuizSession[]): void {
       return;
     }
 
-    // Keep the most recent sessions to avoid exceeding localStorage quota
+    // Keep the most recent sessions to avoid exceeding sessionStorage quota
     const trimmed = sessions.slice(0, MAX_STORED_SESSIONS);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(trimmed));
   } catch (error) {
-    console.warn("[Storage] Failed to write sessions to localStorage:", error);
+    console.warn("[Storage] Failed to write sessions to sessionStorage:", error);
   }
 }
 
 /**
- * Clears stored quiz sessions from localStorage.
+ * Clears stored quiz sessions from sessionStorage.
  */
 export function clearStorageSessions(): void {
   if (typeof window === "undefined") {
@@ -135,8 +135,8 @@ export function clearStorageSessions(): void {
   }
 
   try {
-    window.localStorage.removeItem(STORAGE_KEY);
+    window.sessionStorage.removeItem(STORAGE_KEY);
   } catch (error) {
-    console.warn("[Storage] Failed to clear sessions from localStorage:", error);
+    console.warn("[Storage] Failed to clear sessions from sessionStorage:", error);
   }
 }

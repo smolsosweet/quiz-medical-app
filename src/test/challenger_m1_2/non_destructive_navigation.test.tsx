@@ -10,7 +10,7 @@ import { saveSessionsToStorage, loadSessionsFromStorage } from '@/lib/storage';
 
 describe('Non-Destructive Navigation Empirical Suite (F04)', () => {
   beforeEach(() => {
-    localStorage.clear();
+    sessionStorage.clear();
     vi.clearAllMocks();
   });
 
@@ -119,7 +119,7 @@ describe('Non-Destructive Navigation Empirical Suite (F04)', () => {
 
   describe('2. Page-level State Preservation on Navigation Round-Trip', () => {
     it('strictly preserves staged TXT/PDF files, selected model, and scope when navigating into review mode and clicking Quay lại', async () => {
-      // Seed a session in localStorage using safe storage wrapper
+      // Seed a session in sessionStorage using safe storage wrapper
       const existingSession: QuizSession = {
         id: 'sess-cardio-101',
         title: 'BenhHocTimMach_DaiCuong.txt',
@@ -137,7 +137,7 @@ describe('Non-Destructive Navigation Empirical Suite (F04)', () => {
 
       renderApp();
 
-      // Wait for session to hydrate from localStorage
+      // Wait for session to hydrate from sessionStorage
       await waitFor(() => {
         expect(screen.getByText('BenhHocTimMach_DaiCuong.txt')).toBeInTheDocument();
       });
@@ -388,7 +388,7 @@ describe('Non-Destructive Navigation Empirical Suite (F04)', () => {
 
       expect(screen.getByText(/Hoàn Thành Bài Kiểm Tra!/i)).toBeInTheDocument();
 
-      // 6. Inspect localStorage to verify historical session was NOT contaminated or overwritten
+      // 6. Inspect sessionStorage to verify historical session was NOT contaminated or overwritten
       await waitFor(() => {
         const storedSessions = loadSessionsFromStorage();
         expect(storedSessions).toHaveLength(2);

@@ -12,33 +12,33 @@ describe('Tier 2: Boundary & Corner Cases', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
+    sessionStorage.clear();
   });
 
   describe('Boundary Group 1: Storage Malformation & Corruption', () => {
     it('T2.1: handles malformed unparseable JSON in storage gracefully', () => {
-      localStorage.setItem(STORAGE_KEY, '{invalid json[[[///');
+      sessionStorage.setItem(STORAGE_KEY, '{invalid json[[[///');
       expect(() => loadSessionsFromStorage()).not.toThrow();
       expect(loadSessionsFromStorage()).toEqual([]);
     });
 
     it('T2.2: handles primitive number in storage instead of array', () => {
-      localStorage.setItem(STORAGE_KEY, '99999');
+      sessionStorage.setItem(STORAGE_KEY, '99999');
       expect(loadSessionsFromStorage()).toEqual([]);
     });
 
     it('T2.3: handles plain JSON object in storage instead of array', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ error: 'not an array' }));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ error: 'not an array' }));
       expect(loadSessionsFromStorage()).toEqual([]);
     });
 
     it('T2.4: handles null items inside sessions array without throwing', () => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([null, undefined, false, 'string']));
+      sessionStorage.setItem(STORAGE_KEY, JSON.stringify([null, undefined, false, 'string']));
       expect(loadSessionsFromStorage()).toEqual([]);
     });
 
-    it('T2.5: handles empty string value in localStorage', () => {
-      localStorage.setItem(STORAGE_KEY, '');
+    it('T2.5: handles empty string value in sessionStorage', () => {
+      sessionStorage.setItem(STORAGE_KEY, '');
       expect(loadSessionsFromStorage()).toEqual([]);
     });
   });

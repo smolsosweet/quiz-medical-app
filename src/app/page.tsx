@@ -38,7 +38,7 @@ export default function Home() {
 
   const isFirstRender = useRef(true);
 
-  // Hydrate sessions from localStorage on mount
+  // Hydrate sessions from sessionStorage on mount
   useEffect(() => {
     const stored = loadSessionsFromStorage();
     if (stored.length > 0) {
@@ -47,7 +47,7 @@ export default function Home() {
     setIsHydrated(true);
   }, []);
 
-  // Sync sessions to localStorage whenever sessions state changes (after hydration)
+  // Sync sessions to sessionStorage whenever sessions state changes (after hydration)
   useEffect(() => {
     if (!isHydrated) return;
     if (isFirstRender.current) {

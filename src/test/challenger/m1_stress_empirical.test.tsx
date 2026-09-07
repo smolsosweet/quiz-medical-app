@@ -16,22 +16,22 @@ import { mockMedicalQuestions, mockMedicalSession } from '../fixtures/quizData';
 
 describe('Empirical Challenger Suite: History Review & Session Persistence Stress Test (M1)', () => {
   beforeEach(() => {
-    window.localStorage.clear();
+    window.sessionStorage.clear();
     vi.restoreAllMocks();
   });
 
   afterEach(() => {
     cleanup();
-    window.localStorage.clear();
+    window.sessionStorage.clear();
   });
 
   // =========================================================================
   // SUITE 1: Severely Malformed, Corrupted, Truncated, & Empty JSON Injection
   // =========================================================================
-  describe('Suite 1: LocalStorage Malformation & Corruption Resilience', () => {
-    it('E1.1: Truncated JSON string in localStorage recovers cleanly without throwing', () => {
+  describe('Suite 1: sessionStorage Malformation & Corruption Resilience', () => {
+    it('E1.1: Truncated JSON string in sessionStorage recovers cleanly without throwing', () => {
       const truncated = '[{"id":"session-trunc","title":"Incomplete Medical Quiz","rounds":[{"id":"r1","que';
-      window.localStorage.setItem(STORAGE_KEY, truncated);
+      window.sessionStorage.setItem(STORAGE_KEY, truncated);
 
       expect(() => {
         const result = loadSessionsFromStorage();
@@ -57,7 +57,7 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
       ];
 
       for (const variant of malformedVariants) {
-        window.localStorage.setItem(STORAGE_KEY, variant);
+        window.sessionStorage.setItem(STORAGE_KEY, variant);
         expect(() => {
           const sessions = loadSessionsFromStorage();
           expect(Array.isArray(sessions)).toBe(true);
@@ -80,7 +80,7 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
         { id: null, title: 'Null ID' },
       ];
 
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(corruptArray));
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(corruptArray));
 
       expect(() => {
         const sessions = loadSessionsFromStorage();
@@ -107,7 +107,7 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
         },
       ];
 
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionWithCorruptRounds));
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sessionWithCorruptRounds));
 
       const sessions = loadSessionsFromStorage();
       expect(sessions.length).toBe(3);
@@ -155,7 +155,7 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
         },
       ];
 
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(sessionWithBadQuestions));
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sessionWithBadQuestions));
 
       const sessions = loadSessionsFromStorage();
       expect(sessions.length).toBe(1);
@@ -164,8 +164,8 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
       expect(sessions[0].rounds[0].userAnswers).toEqual({ 'q-valid': 'A' });
     });
 
-    it('E1.6: End-to-end Home component mount with severely corrupted localStorage does not throw', async () => {
-      window.localStorage.setItem(STORAGE_KEY, '{"corrupted": true, [unclosed');
+    it('E1.6: End-to-end Home component mount with severely corrupted sessionStorage does not throw', async () => {
+      window.sessionStorage.setItem(STORAGE_KEY, '{"corrupted": true, [unclosed');
 
       const { container } = render(
         <ThemeProvider>
@@ -189,7 +189,7 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
         'random-junk',
       ];
 
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(mixedStorage));
+      window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(mixedStorage));
 
       render(
         <ThemeProvider>
@@ -229,7 +229,7 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
       const sessions150 = generateMockSessions(150);
       saveSessionsToStorage(sessions150);
 
-      const raw = window.localStorage.getItem(STORAGE_KEY);
+      const raw = window.sessionStorage.getItem(STORAGE_KEY);
       expect(raw).not.toBeNull();
       const storedArray = JSON.parse(raw!);
       expect(storedArray.length).toBe(50);
@@ -257,9 +257,9 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
       expect(avgTime).toBeLessThan(20); // Average read < 20ms
     });
 
-    it('E2.3: Gracefully handles window.localStorage.setItem QuotaExceededError without throwing', () => {
+    it('E2.3: Gracefully handles window.sessionStorage.setItem QuotaExceededError without throwing', () => {
       const sessions = generateMockSessions(10);
-      const setItemSpy = vi.spyOn(window.localStorage, 'setItem').mockImplementation(() => {
+      const setItemSpy = vi.spyOn(window.sessionStorage, 'setItem').mockImplementation(() => {
         const error = new DOMException('The quota has been exceeded.', 'QuotaExceededError');
         throw error;
       });
@@ -271,8 +271,8 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
       setItemSpy.mockRestore();
     });
 
-    it('E2.4: Gracefully handles window.localStorage.getItem SecurityError without throwing', () => {
-      const getItemSpy = vi.spyOn(window.localStorage, 'getItem').mockImplementation(() => {
+    it('E2.4: Gracefully handles window.sessionStorage.getItem SecurityError without throwing', () => {
+      const getItemSpy = vi.spyOn(window.sessionStorage, 'getItem').mockImplementation(() => {
         const error = new DOMException('Storage access denied.', 'SecurityError');
         throw error;
       });
@@ -291,7 +291,7 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
 
       clearStorageSessions();
       expect(loadSessionsFromStorage()).toEqual([]);
-      expect(window.localStorage.getItem(STORAGE_KEY)).toBeNull();
+      expect(window.sessionStorage.getItem(STORAGE_KEY)).toBeNull();
     });
 
     it('E2.6: Renders 50 sessions in UploadConfig dashboard cleanly without crash', () => {
