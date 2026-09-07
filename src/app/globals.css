@@ -181,7 +181,7 @@ h1 {
 }
 
 .main-container {
-  max-width: 1200px;
+  max-width: 1440px;
   margin: 0 auto;
   padding: 2rem;
   width: 100%;
@@ -214,6 +214,9 @@ header.app-header {
     grid-template-columns: repeat(12, 1fr);
     gap: 1.5rem;
   }
+  .bento-col-3 {
+    grid-column: span 3;
+  }
   .bento-col-4 {
     grid-column: span 4;
   }
@@ -225,6 +228,9 @@ header.app-header {
   }
   .bento-col-8 {
     grid-column: span 8;
+  }
+  .bento-col-9 {
+    grid-column: span 9;
   }
   .bento-col-12 {
     grid-column: span 12;

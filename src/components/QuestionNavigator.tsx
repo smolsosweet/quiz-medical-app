@@ -11,6 +11,7 @@ interface QuestionNavigatorProps {
   onSelectQuestion: (index: number) => void;
   isOpen: boolean;
   onToggle: () => void;
+  onFinish: () => void;
 }
 
 export default function QuestionNavigator({
@@ -19,7 +20,8 @@ export default function QuestionNavigator({
   userAnswers,
   onSelectQuestion,
   isOpen,
-  onToggle
+  onToggle,
+  onFinish
 }: QuestionNavigatorProps) {
   const answeredCount = Object.keys(userAnswers).filter(id => 
     questions.some(q => q.id === id)
@@ -190,6 +192,18 @@ export default function QuestionNavigator({
               <span style={{ width: '10px', height: '10px', borderRadius: '2px', border: '1px solid var(--border-color)', backgroundColor: 'var(--surface-color)' }} />
               <span>Chưa làm</span>
             </div>
+          </div>
+
+          {/* Submit Button */}
+          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+            <button 
+              type="button" 
+              className="btn-primary" 
+              style={{ width: '100%', padding: '0.75rem', fontWeight: 700 }}
+              onClick={onFinish}
+            >
+              Nộp bài
+            </button>
           </div>
         </div>
       )}

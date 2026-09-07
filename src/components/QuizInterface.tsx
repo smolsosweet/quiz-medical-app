@@ -80,11 +80,22 @@ export default function QuizInterface({
     }));
   };
 
+  const handleFinish = () => {
+    const answeredCount = Object.keys(userAnswers).length;
+    if (answeredCount < safeQuestions.length) {
+      if (window.confirm(`Bạn mới làm ${answeredCount}/${safeQuestions.length} câu. Bạn có chắc chắn muốn nộp bài?`)) {
+        setIsFinished(true);
+      }
+    } else {
+      setIsFinished(true);
+    }
+  };
+
   const handleNext = () => {
     if (currentIndex < safeQuestions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
-      setIsFinished(true);
+      handleFinish();
     }
   };
 
@@ -315,7 +326,7 @@ export default function QuizInterface({
   return (
     <div className="bento-grid" style={{ width: '100%' }}>
       {/* Question Navigator Sidebar (F11) - Left Column */}
-      <div className="bento-col-4" style={{ height: 'fit-content' }}>
+      <div className="bento-col-3" style={{ height: 'fit-content' }}>
         <QuestionNavigator 
           questions={safeQuestions}
           currentIndex={currentIndex}
@@ -323,11 +334,12 @@ export default function QuizInterface({
           onSelectQuestion={(idx) => setCurrentIndex(idx)}
           isOpen={isNavigatorOpen}
           onToggle={() => setIsNavigatorOpen((prev) => !prev)}
+          onFinish={handleFinish}
         />
       </div>
 
       {/* Question Area - Right Column */}
-      <div className="bento-col-8 glass-panel animate-fade-in" style={{ width: '100%', padding: '2rem' }}>
+      <div className="bento-col-9 glass-panel animate-fade-in" style={{ width: '100%', padding: '2rem' }}>
         {/* Progress Bar */}
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
