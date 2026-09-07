@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Question, QuizRound, AnswerLabel } from "@/types";
-import { CheckCircle2, XCircle, ChevronRight, ChevronLeft, RefreshCw, Upload, List, Printer } from "lucide-react";
+import { CheckCircle2, XCircle, ChevronRight, ChevronLeft, ChevronUp, ChevronDown, RefreshCw, Upload, List, Printer } from "lucide-react";
 import QuestionNavigator from "@/components/QuestionNavigator";
 
 interface Props {
@@ -32,9 +32,14 @@ export default function QuizInterface({
   const [userAnswers, setUserAnswers] = useState<Record<string, AnswerLabel>>({});
   const [isFinished, setIsFinished] = useState(isReviewMode);
   const [showReview, setShowReview] = useState(isReviewMode);
-  const [isNavigatorOpen, setIsNavigatorOpen] = useState(true);
+  const [showExplanation, setShowExplanation] = useState(false);
   const hasFinishedRef = useRef(false);
   
+  // Reset explanation state when navigating between questions
+  useEffect(() => {
+    setShowExplanation(false);
+  }, [currentIndex]);
+
   const [showAddQuestions, setShowAddQuestions] = useState(false);
   const [newNumQuestions, setNewNumQuestions] = useState(10);
 
@@ -332,8 +337,6 @@ export default function QuizInterface({
           currentIndex={currentIndex}
           userAnswers={userAnswers}
           onSelectQuestion={(idx) => setCurrentIndex(idx)}
-          isOpen={isNavigatorOpen}
-          onToggle={() => setIsNavigatorOpen((prev) => !prev)}
           onFinish={handleFinish}
         />
       </div>
@@ -447,11 +450,24 @@ export default function QuizInterface({
               wordBreak: 'break-word',
               overflowWrap: 'break-word'
             }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                {isCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-                {isCorrect ? 'Chính xác!' : 'Chưa chính xác!'}
-              </h4>
-              <p style={{ color: 'var(--text-color)' }}>{currentQuestion.explanation}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                  {isCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+                  {isCorrect ? 'Chính xác!' : 'Chưa chính xác!'}
+                </h4>
+                <button 
+                  type="button" 
+                  onClick={() => setShowExplanation(!showExplanation)}
+                  style={{ background: 'transparent', border: 'none', color: 'inherit', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', padding: '0.25rem' }}
+                >
+                  {showExplanation ? 'Ẩn giải thích' : 'Xem giải thích'} {showExplanation ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                </button>
+              </div>
+              {showExplanation && (
+                <p style={{ color: 'var(--text-color)', marginTop: '1rem', paddingTop: '1rem', borderTop: `1px solid ${isCorrect ? 'var(--success-color)' : 'var(--error-color)'}` }}>
+                  {currentQuestion.explanation}
+                </p>
+              )}
             </div>
           )}
 

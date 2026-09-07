@@ -14,31 +14,20 @@ describe('Feature 11: QuestionNavigator Component', () => {
     onToggle: vi.fn(),
   };
 
-  it('renders collapsed state with question count badge', () => {
+  it('renders static header with question count badge', () => {
     render(<QuestionNavigator {...defaultProps} />);
     expect(screen.getByText(/Danh sách câu hỏi/i)).toBeInTheDocument();
     expect(screen.getByText(/Đã làm 0\/5/i)).toBeInTheDocument();
-    expect(screen.getByText(/Mở rộng/i)).toBeInTheDocument();
-    expect(screen.queryByRole('region', { name: /Bảng câu hỏi/i })).not.toBeInTheDocument();
-  });
-
-  it('calls onToggle when header button is clicked', () => {
-    render(<QuestionNavigator {...defaultProps} />);
-    const toggleBtn = screen.getByRole('button', { name: /Danh sách câu hỏi/i });
-    fireEvent.click(toggleBtn);
-    expect(defaultProps.onToggle).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders all question numbers and legend when isOpen is true', () => {
-    render(<QuestionNavigator {...defaultProps} isOpen={true} />);
-    expect(screen.getByText(/Thu gọn/i)).toBeInTheDocument();
+    // Grid should be visible
     expect(screen.getByRole('region', { name: /Bảng câu hỏi/i })).toBeInTheDocument();
+  });
 
-    // Verify all 5 questions exist as buttons in grid
+  it('renders all question numbers and legend', () => {
+    render(<QuestionNavigator {...defaultProps} />);
+    // Verify question buttons 1 to 5
     for (let i = 1; i <= 5; i++) {
       expect(screen.getByRole('button', { name: new RegExp(`Câu hỏi ${i}`, 'i') })).toBeInTheDocument();
     }
-
     // Verify legend
     expect(screen.getByText(/Đang làm/i)).toBeInTheDocument();
     expect(screen.getByText(/Đã trả lời/i)).toBeInTheDocument();

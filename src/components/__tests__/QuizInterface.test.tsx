@@ -49,6 +49,10 @@ describe('Tier 1: QuizInterface Component', () => {
 
       // Should show feedback and explanation
       expect(screen.getByText('Chính xác!')).toBeInTheDocument();
+      
+      const toggleExplanationBtn = screen.getByRole('button', { name: /Xem giải thích/i });
+      fireEvent.click(toggleExplanationBtn);
+      
       expect(screen.getByText(mockMedicalQuestions[0].explanation)).toBeInTheDocument();
     });
 
@@ -234,7 +238,7 @@ describe('Tier 1: QuizInterface Component', () => {
       render(<QuizInterface {...defaultProps} />);
 
       // Drawer is open by default
-      const navHeader = screen.getByRole('button', { name: /Danh sách câu hỏi/i });
+      const navHeader = screen.getByText(/Danh sách câu hỏi/i);
       expect(navHeader).toBeInTheDocument();
 
       // Jump to question 4

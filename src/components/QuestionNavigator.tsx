@@ -9,8 +9,6 @@ interface QuestionNavigatorProps {
   currentIndex: number;
   userAnswers: Record<string, AnswerLabel>;
   onSelectQuestion: (index: number) => void;
-  isOpen: boolean;
-  onToggle: () => void;
   onFinish: () => void;
 }
 
@@ -19,8 +17,6 @@ export default function QuestionNavigator({
   currentIndex,
   userAnswers,
   onSelectQuestion,
-  isOpen,
-  onToggle,
   onFinish
 }: QuestionNavigatorProps) {
   const answeredCount = Object.keys(userAnswers).filter(id => 
@@ -36,17 +32,12 @@ export default function QuestionNavigator({
         borderRadius: '12px',
         backgroundColor: 'var(--surface-color)',
         overflow: 'hidden',
-        transition: 'all 0.2s ease',
         position: 'sticky',
         top: '100px'
       }}
     >
-      {/* Navigator Header / Trigger */}
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-expanded={isOpen}
-        aria-controls="question-navigator-grid"
+      {/* Static Header */}
+      <div
         className="quiz-option"
         style={{
           width: '100%',
@@ -56,7 +47,6 @@ export default function QuestionNavigator({
           padding: '0.75rem 1rem',
           backgroundColor: 'transparent',
           border: 'none',
-          cursor: 'pointer',
           color: 'var(--text-color)',
           fontSize: '0.9rem',
           fontWeight: 600
@@ -79,26 +69,21 @@ export default function QuestionNavigator({
             Đã làm {answeredCount}/{questions.length}
           </span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', color: 'var(--text-muted)' }}>
-          <span style={{ fontSize: '0.8rem' }}>{isOpen ? 'Thu gọn' : 'Mở rộng'}</span>
-          {isOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </div>
-      </button>
+      </div>
 
-      {/* Collapsible Grid Matrix */}
-      {isOpen && (
-        <div 
-          id="question-navigator-grid"
-          role="region"
-          aria-label="Bảng câu hỏi"
-          style={{
-            padding: '1rem',
-            borderTop: '1px solid var(--border-color)',
-            backgroundColor: 'var(--bg-color)',
-            maxHeight: 'calc(100vh - 250px)',
-            overflowY: 'auto'
-          }}
-        >
+      {/* Grid Matrix always visible */}
+      <div 
+        id="question-navigator-grid"
+        role="region"
+        aria-label="Bảng câu hỏi"
+        style={{
+          padding: '1rem',
+          borderTop: '1px solid var(--border-color)',
+          backgroundColor: 'var(--bg-color)',
+          maxHeight: 'calc(100vh - 250px)',
+          overflowY: 'auto'
+        }}
+      >
           <div 
             style={{
               display: 'grid',
@@ -206,7 +191,6 @@ export default function QuestionNavigator({
             </button>
           </div>
         </div>
-      )}
     </div>
   );
 }

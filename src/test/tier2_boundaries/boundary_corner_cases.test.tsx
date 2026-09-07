@@ -517,6 +517,9 @@ describe('Tier 2: Boundary & Corner Cases', () => {
       // Select option
       fireEvent.click(screen.getByText(questionWithLongExpl.options[0].text).closest('button')!);
 
+      const toggleExplanationBtn = screen.getByRole('button', { name: /Xem giải thích/i });
+      fireEvent.click(toggleExplanationBtn);
+
       expect(screen.getByText(longExplanation.trim())).toBeInTheDocument();
     });
   });

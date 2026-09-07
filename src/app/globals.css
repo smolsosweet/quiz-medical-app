@@ -181,9 +181,9 @@ h1 {
 }
 
 .main-container {
-  max-width: 1440px;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1rem 2rem;
   width: 100%;
   flex: 1;
   display: flex;

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Header from "@/components/Header";
 import UploadConfig from "@/components/UploadConfig";
 import QuizInterface from "@/components/QuizInterface";
@@ -36,20 +36,24 @@ export default function Home() {
   const [error, setError] = useState<string>("");
   const [quizId, setQuizId] = useState(0);
 
+  const isFirstRender = useRef(true);
+
   // Hydrate sessions from localStorage on mount
   useEffect(() => {
     const stored = loadSessionsFromStorage();
-    queueMicrotask(() => {
-      if (stored.length > 0) {
-        setSessions(stored);
-      }
-      setIsHydrated(true);
-    });
+    if (stored.length > 0) {
+      setSessions(stored);
+    }
+    setIsHydrated(true);
   }, []);
 
   // Sync sessions to localStorage whenever sessions state changes (after hydration)
   useEffect(() => {
     if (!isHydrated) return;
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     saveSessionsToStorage(sessions);
   }, [sessions, isHydrated]);
 
