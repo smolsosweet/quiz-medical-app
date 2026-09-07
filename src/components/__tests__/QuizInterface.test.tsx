@@ -233,9 +233,9 @@ describe('Tier 1: QuizInterface Component', () => {
     it('F11: renders collapsible QuestionNavigator allowing direct question jumps', () => {
       render(<QuizInterface {...defaultProps} />);
 
-      // Open drawer
+      // Drawer is open by default
       const navHeader = screen.getByRole('button', { name: /Danh sách câu hỏi/i });
-      fireEvent.click(navHeader);
+      expect(navHeader).toBeInTheDocument();
 
       // Jump to question 4
       const q4Btn = screen.getByRole('button', { name: /Câu hỏi 4/i });

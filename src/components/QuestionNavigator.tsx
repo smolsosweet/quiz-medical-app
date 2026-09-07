@@ -34,7 +34,9 @@ export default function QuestionNavigator({
         borderRadius: '12px',
         backgroundColor: 'var(--surface-color)',
         overflow: 'hidden',
-        transition: 'all 0.2s ease'
+        transition: 'all 0.2s ease',
+        position: 'sticky',
+        top: '100px'
       }}
     >
       {/* Navigator Header / Trigger */}
@@ -91,7 +93,7 @@ export default function QuestionNavigator({
             padding: '1rem',
             borderTop: '1px solid var(--border-color)',
             backgroundColor: 'var(--bg-color)',
-            maxHeight: '260px',
+            maxHeight: 'calc(100vh - 250px)',
             overflowY: 'auto'
           }}
         >

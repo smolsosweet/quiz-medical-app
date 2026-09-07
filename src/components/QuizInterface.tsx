@@ -32,7 +32,7 @@ export default function QuizInterface({
   const [userAnswers, setUserAnswers] = useState<Record<string, AnswerLabel>>({});
   const [isFinished, setIsFinished] = useState(isReviewMode);
   const [showReview, setShowReview] = useState(isReviewMode);
-  const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
+  const [isNavigatorOpen, setIsNavigatorOpen] = useState(true);
   const hasFinishedRef = useRef(false);
   
   const [showAddQuestions, setShowAddQuestions] = useState(false);
@@ -313,150 +313,155 @@ export default function QuizInterface({
   const progressPercent = Math.round((currentIndex / progressTotal) * 100);
 
   return (
-    <div className="glass-panel animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-      {/* Question Navigator Drawer (F11) */}
-      <QuestionNavigator 
-        questions={safeQuestions}
-        currentIndex={currentIndex}
-        userAnswers={userAnswers}
-        onSelectQuestion={(idx) => setCurrentIndex(idx)}
-        isOpen={isNavigatorOpen}
-        onToggle={() => setIsNavigatorOpen((prev) => !prev)}
-      />
-
-      {/* Progress Bar */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-          <span>Câu hỏi {currentIndex + 1} / {safeQuestions.length}</span>
-          <span>{progressPercent}%</span>
-        </div>
-        <div 
-          role="progressbar" 
-          aria-valuenow={progressPercent} 
-          aria-valuemin={0} 
-          aria-valuemax={100}
-          style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}
-        >
-          <div style={{ 
-            height: '100%', 
-            backgroundColor: 'var(--primary-color)', 
-            width: `${progressPercent}%`,
-            transition: 'width 0.3s ease'
-          }}></div>
-        </div>
+    <div className="bento-grid" style={{ width: '100%' }}>
+      {/* Question Navigator Sidebar (F11) - Left Column */}
+      <div className="bento-col-4" style={{ height: 'fit-content' }}>
+        <QuestionNavigator 
+          questions={safeQuestions}
+          currentIndex={currentIndex}
+          userAnswers={userAnswers}
+          onSelectQuestion={(idx) => setCurrentIndex(idx)}
+          isOpen={isNavigatorOpen}
+          onToggle={() => setIsNavigatorOpen((prev) => !prev)}
+        />
       </div>
 
-      {/* Question Area */}
-      <div style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.4rem', lineHeight: 1.5, marginBottom: '1.5rem', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
-          {currentQuestion.text}
-        </h2>
+      {/* Question Area - Right Column */}
+      <div className="bento-col-8 glass-panel animate-fade-in" style={{ width: '100%', padding: '2rem' }}>
+        {/* Progress Bar */}
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
+            <span>Câu hỏi {currentIndex + 1} / {safeQuestions.length}</span>
+            <span>{progressPercent}%</span>
+          </div>
+          <div 
+            role="progressbar" 
+            aria-valuenow={progressPercent} 
+            aria-valuemin={0} 
+            aria-valuemax={100}
+            style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}
+          >
+            <div style={{ 
+              height: '100%', 
+              backgroundColor: 'var(--primary-color)', 
+              width: `${progressPercent}%`,
+              transition: 'width 0.3s ease'
+            }}></div>
+          </div>
+        </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} role="radiogroup" aria-label="Lựa chọn đáp án">
-          {(currentQuestion.options || []).map((option) => {
-            const isSelected = selectedAnswer === option.label;
-            const isCorrectOption = option.label === currentQuestion.correctAnswer;
-            
-            const buttonStyle: React.CSSProperties = {
-              padding: '1rem 1.5rem',
-              borderRadius: '12px',
-              borderWidth: '2px',
-              borderStyle: 'solid',
-              borderColor: 'var(--border-color)',
-              backgroundColor: 'var(--surface-color)',
-              cursor: hasAnsweredCurrent ? 'default' : 'pointer',
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '1rem',
-              transition: 'all 0.2s',
-              textAlign: 'left' as const,
-              width: '100%',
-              fontSize: '1rem',
-              color: 'var(--text-color)',
+        {/* Question Content */}
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={{ fontSize: '1.4rem', lineHeight: 1.5, marginBottom: '1.5rem', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+            {currentQuestion.text}
+          </h2>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} role="radiogroup" aria-label="Lựa chọn đáp án">
+            {(currentQuestion.options || []).map((option) => {
+              const isSelected = selectedAnswer === option.label;
+              const isCorrectOption = option.label === currentQuestion.correctAnswer;
+              
+              const buttonStyle: React.CSSProperties = {
+                padding: '1rem 1.5rem',
+                borderRadius: '12px',
+                borderWidth: '2px',
+                borderStyle: 'solid',
+                borderColor: 'var(--border-color)',
+                backgroundColor: 'var(--surface-color)',
+                cursor: hasAnsweredCurrent ? 'default' : 'pointer',
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: '1rem',
+                transition: 'all 0.2s',
+                textAlign: 'left' as const,
+                width: '100%',
+                fontSize: '1rem',
+                color: 'var(--text-color)',
+                wordBreak: 'break-word',
+                overflowWrap: 'break-word'
+              };
+
+              if (hasAnsweredCurrent) {
+                if (isCorrectOption) {
+                  buttonStyle.backgroundColor = 'var(--success-bg)';
+                  buttonStyle.borderColor = 'var(--success-color)';
+                } else if (isSelected) {
+                  buttonStyle.backgroundColor = 'var(--error-bg)';
+                  buttonStyle.borderColor = 'var(--error-color)';
+                } else {
+                  buttonStyle.opacity = '0.6';
+                }
+              }
+
+              return (
+                <button 
+                  key={option.label}
+                  className="quiz-option"
+                  style={buttonStyle}
+                  onClick={() => handleSelectOption(option.label)}
+                  disabled={hasAnsweredCurrent}
+                  role="radio"
+                  aria-checked={isSelected}
+                >
+                  <span style={{ 
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    width: '32px', height: '32px', borderRadius: '50%',
+                    flexShrink: 0,
+                    marginTop: '2px',
+                    backgroundColor: (hasAnsweredCurrent && (isCorrectOption || isSelected)) ? 'transparent' : 'var(--border-color)',
+                    fontWeight: 700
+                  }}>
+                    {hasAnsweredCurrent && isCorrectOption ? <CheckCircle2 color="var(--success-color)" aria-label="Đúng" /> : 
+                     hasAnsweredCurrent && isSelected ? <XCircle color="var(--error-color)" aria-label="Sai" /> : 
+                     option.label}
+                  </span>
+                  <span style={{ flex: 1, wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: 1.5 }}>{option.text}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Explanation & Bidirectional Navigation Buttons (F11 & F12) */}
+        <div>
+          {hasAnsweredCurrent && currentQuestion.explanation && (
+            <div className="animate-fade-in" style={{ 
+              padding: '1.25rem', 
+              borderRadius: '12px', 
+              backgroundColor: isCorrect ? 'var(--success-bg)' : 'var(--error-bg)',
+              color: isCorrect ? 'var(--success-color)' : 'var(--error-color)',
+              marginBottom: '1.5rem',
+              border: `1px solid ${isCorrect ? 'var(--success-color)' : 'var(--error-color)'}`,
               wordBreak: 'break-word',
               overflowWrap: 'break-word'
-            };
-
-            if (hasAnsweredCurrent) {
-              if (isCorrectOption) {
-                buttonStyle.backgroundColor = 'var(--success-bg)';
-                buttonStyle.borderColor = 'var(--success-color)';
-              } else if (isSelected) {
-                buttonStyle.backgroundColor = 'var(--error-bg)';
-                buttonStyle.borderColor = 'var(--error-color)';
-              } else {
-                buttonStyle.opacity = '0.6';
-              }
-            }
-
-            return (
-              <button 
-                key={option.label}
-                className="quiz-option"
-                style={buttonStyle}
-                onClick={() => handleSelectOption(option.label)}
-                disabled={hasAnsweredCurrent}
-                role="radio"
-                aria-checked={isSelected}
-              >
-                <span style={{ 
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  width: '32px', height: '32px', borderRadius: '50%',
-                  flexShrink: 0,
-                  marginTop: '2px',
-                  backgroundColor: (hasAnsweredCurrent && (isCorrectOption || isSelected)) ? 'transparent' : 'var(--border-color)',
-                  fontWeight: 700
-                }}>
-                  {hasAnsweredCurrent && isCorrectOption ? <CheckCircle2 color="var(--success-color)" aria-label="Đúng" /> : 
-                   hasAnsweredCurrent && isSelected ? <XCircle color="var(--error-color)" aria-label="Sai" /> : 
-                   option.label}
-                </span>
-                <span style={{ flex: 1, wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: 1.5 }}>{option.text}</span>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Explanation & Bidirectional Navigation Buttons (F11 & F12) */}
-      <div>
-        {hasAnsweredCurrent && currentQuestion.explanation && (
-          <div className="animate-fade-in" style={{ 
-            padding: '1.25rem', 
-            borderRadius: '12px', 
-            backgroundColor: isCorrect ? 'var(--success-bg)' : 'var(--error-bg)',
-            color: isCorrect ? 'var(--success-color)' : 'var(--error-color)',
-            marginBottom: '1.5rem',
-            border: `1px solid ${isCorrect ? 'var(--success-color)' : 'var(--error-color)'}`,
-            wordBreak: 'break-word',
-            overflowWrap: 'break-word'
-          }}>
-            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              {isCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-              {isCorrect ? 'Chính xác!' : 'Chưa chính xác!'}
-            </h4>
-            <p style={{ color: 'var(--text-color)' }}>{currentQuestion.explanation}</p>
-          </div>
-        )}
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-          {currentIndex > 0 ? (
-            <button 
-              type="button"
-              className="btn-secondary" 
-              onClick={handlePrev}
-              aria-label="Câu trước"
-            >
-              <ChevronLeft size={20} /> Câu trước
-            </button>
-          ) : <div />}
-
-          {hasAnsweredCurrent && (
-            <button type="button" className="btn-primary" onClick={handleNext}>
-              {currentIndex < safeQuestions.length - 1 ? 'Câu tiếp theo' : 'Xem kết quả'} 
-              <ChevronRight size={20} />
-            </button>
+            }}>
+              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                {isCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+                {isCorrect ? 'Chính xác!' : 'Chưa chính xác!'}
+              </h4>
+              <p style={{ color: 'var(--text-color)' }}>{currentQuestion.explanation}</p>
+            </div>
           )}
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+            {currentIndex > 0 ? (
+              <button 
+                type="button"
+                className="btn-secondary" 
+                onClick={handlePrev}
+                aria-label="Câu trước"
+              >
+                <ChevronLeft size={20} /> Câu trước
+              </button>
+            ) : <div />}
+
+            {hasAnsweredCurrent && (
+              <button type="button" className="btn-primary" onClick={handleNext}>
+                {currentIndex < safeQuestions.length - 1 ? 'Câu tiếp theo' : 'Xem kết quả'} 
+                <ChevronRight size={20} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
