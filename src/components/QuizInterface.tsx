@@ -338,6 +338,10 @@ export default function QuizInterface({
           userAnswers={userAnswers}
           onSelectQuestion={(idx) => setCurrentIndex(idx)}
           onFinish={handleFinish}
+          onNext={handleNext}
+          onPrevious={handlePrev}
+          hasNext={hasAnsweredCurrent && currentIndex < safeQuestions.length - 1}
+          hasPrevious={currentIndex > 0}
         />
       </div>
 
@@ -471,25 +475,6 @@ export default function QuizInterface({
             </div>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
-            {currentIndex > 0 ? (
-              <button 
-                type="button"
-                className="btn-secondary" 
-                onClick={handlePrev}
-                aria-label="Câu trước"
-              >
-                <ChevronLeft size={20} /> Câu trước
-              </button>
-            ) : <div />}
-
-            {hasAnsweredCurrent && (
-              <button type="button" className="btn-primary" onClick={handleNext}>
-                {currentIndex < safeQuestions.length - 1 ? 'Câu tiếp theo' : 'Xem kết quả'} 
-                <ChevronRight size={20} />
-              </button>
-            )}
-          </div>
         </div>
       </div>
     </div>

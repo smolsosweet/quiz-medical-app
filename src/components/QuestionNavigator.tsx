@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Question, AnswerLabel } from "@/types";
-import { LayoutGrid, ChevronDown, ChevronUp } from "lucide-react";
+import { LayoutGrid, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface QuestionNavigatorProps {
   questions: Question[];
@@ -10,6 +10,10 @@ interface QuestionNavigatorProps {
   userAnswers: Record<string, AnswerLabel>;
   onSelectQuestion: (index: number) => void;
   onFinish: () => void;
+  onNext?: () => void;
+  onPrevious?: () => void;
+  hasNext?: boolean;
+  hasPrevious?: boolean;
 }
 
 export default function QuestionNavigator({
@@ -17,7 +21,11 @@ export default function QuestionNavigator({
   currentIndex,
   userAnswers,
   onSelectQuestion,
-  onFinish
+  onFinish,
+  onNext,
+  onPrevious,
+  hasNext,
+  hasPrevious
 }: QuestionNavigatorProps) {
   const answeredCount = Object.keys(userAnswers).filter(id => 
     questions.some(q => q.id === id)
@@ -42,33 +50,32 @@ export default function QuestionNavigator({
         style={{
           width: '100%',
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           alignItems: 'center',
-          padding: '0.75rem 1rem',
+          padding: '1rem',
           backgroundColor: 'transparent',
           border: 'none',
           color: 'var(--text-color)',
-          fontSize: '0.9rem',
-          fontWeight: 600
+          fontSize: '1rem',
+          fontWeight: 700,
+          gap: '0.75rem'
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <LayoutGrid size={18} color="var(--primary-color)" />
-          <span>Danh sách câu hỏi</span>
-          <span 
-            style={{ 
-              fontSize: '0.8rem', 
-              fontWeight: 500, 
-              color: 'var(--text-muted)',
-              backgroundColor: 'var(--surface-glass)',
-              padding: '0.15rem 0.5rem',
-              borderRadius: '9999px',
-              border: '1px solid var(--border-color)'
-            }}
-          >
-            Đã làm {answeredCount}/{questions.length}
-          </span>
-        </div>
+        <LayoutGrid size={20} color="var(--primary-color)" />
+        <span>Danh sách câu hỏi</span>
+        <span 
+          style={{ 
+            fontSize: '0.85rem', 
+            fontWeight: 500, 
+            color: 'var(--text-muted)',
+            backgroundColor: 'var(--surface-glass)',
+            padding: '0.2rem 0.6rem',
+            borderRadius: '9999px',
+            border: '1px solid var(--border-color)'
+          }}
+        >
+          Đã làm {answeredCount}/{questions.length}
+        </span>
       </div>
 
       {/* Grid Matrix always visible */}
@@ -179,8 +186,32 @@ export default function QuestionNavigator({
             </div>
           </div>
 
+          {/* Navigation Controls */}
+          {(hasPrevious !== undefined || hasNext !== undefined) && (
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={onPrevious}
+                disabled={!hasPrevious}
+                style={{ flex: 1, padding: '0.65rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.25rem', opacity: hasPrevious ? 1 : 0.5, cursor: hasPrevious ? 'pointer' : 'not-allowed' }}
+              >
+                <ChevronLeft size={16} /> Câu trước
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={onNext}
+                disabled={!hasNext}
+                style={{ flex: 1, padding: '0.65rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.25rem', opacity: hasNext ? 1 : 0.5, cursor: hasNext ? 'pointer' : 'not-allowed' }}
+              >
+                Câu tiếp <ChevronRight size={16} />
+              </button>
+            </div>
+          )}
+
           {/* Submit Button */}
-          <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'center' }}>
+          <div style={{ marginTop: '0.75rem', display: 'flex', justifyContent: 'center' }}>
             <button 
               type="button" 
               className="btn-primary" 

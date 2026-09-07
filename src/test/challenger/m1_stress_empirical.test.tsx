@@ -541,8 +541,8 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
       const optionA = screen.getByRole('radio', { name: /First choice diagnosis/i });
       fireEvent.click(optionA);
 
-      // Click "Xem kết quả"
-      const finishBtn = screen.getByRole('button', { name: /Xem kết quả/i });
+      // Click "Nộp bài"
+      const finishBtn = screen.getByRole('button', { name: /Nộp bài/i });
       fireEvent.click(finishBtn);
 
       // Assert Score display
@@ -570,8 +570,8 @@ describe('Empirical Challenger Suite: History Review & Session Persistence Stres
       const optionB = screen.getByRole('radio', { name: /Second choice diagnosis/i });
       fireEvent.click(optionB);
 
-      // Click "Xem kết quả"
-      const finishBtn = screen.getByRole('button', { name: /Xem kết quả/i });
+      // Click "Nộp bài"
+      const finishBtn = screen.getByRole('button', { name: /Nộp bài/i });
       fireEvent.click(finishBtn);
 
       // Assert Score display

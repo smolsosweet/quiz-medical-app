@@ -56,27 +56,27 @@ describe('Tier 4: Real-World Medical Application Scenarios', () => {
     // Q1: RCA ST elevation in DII, DIII, aVF -> Option A
     fireEvent.click(screen.getByText(mockMedicalQuestions[0].options[0].text).closest('button')!);
     expect(screen.getByText('Chính xác!')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
     // Q2: Anaphylaxis first-line treatment -> Option B (Adrenaline IM)
     fireEvent.click(screen.getByText(mockMedicalQuestions[1].options[1].text).closest('button')!);
     expect(screen.getByText('Chính xác!')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
     // Q3: Charcot triad -> Option A (RUQ pain, fever with rigors, jaundice)
     fireEvent.click(screen.getByText(mockMedicalQuestions[2].options[0].text).closest('button')!);
     expect(screen.getByText('Chính xác!')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
     // Q4: Pregnancy contraindication -> Option C (ACEi/ARB)
     fireEvent.click(screen.getByText(mockMedicalQuestions[3].options[2].text).closest('button')!);
     expect(screen.getByText('Chính xác!')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
     // Q5: Heart failure biomarker -> Option A (BNP/NT-proBNP)
     fireEvent.click(screen.getByText(mockMedicalQuestions[4].options[0].text).closest('button')!);
     expect(screen.getByText('Chính xác!')).toBeInTheDocument();
-    fireEvent.click(screen.getByRole('button', { name: /Xem kết quả/i }));
+    fireEvent.click(screen.getByRole('button', { name: /Nộp bài/i }));
 
     // Verify 100% perfect exam score
     expect(screen.getByText('100%')).toBeInTheDocument();
@@ -202,7 +202,7 @@ describe('Tier 4: Real-World Medical Application Scenarios', () => {
       fireEvent.click(screen.getAllByRole('radio')[chosenOptionIndex]);
 
       const actionBtn = screen.getByRole('button', {
-        name: i === 19 ? /Xem kết quả/i : /Câu tiếp theo/i,
+        name: i === 19 ? /Nộp bài/i : /Câu tiếp/i,
       });
       fireEvent.click(actionBtn);
     }
@@ -234,7 +234,7 @@ describe('Tier 4: Real-World Medical Application Scenarios', () => {
     // Finish 5 questions quickly
     for (let i = 0; i < 5; i++) {
       fireEvent.click(screen.getAllByRole('radio')[0]);
-      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /Xem kết quả/i : /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /Nộp bài/i : /Câu tiếp/i }));
     }
 
     // Enter review mode

@@ -70,12 +70,12 @@ describe('Tier 1: QuizInterface Component', () => {
       expect(screen.queryByText('Chưa chính xác!')).not.toBeInTheDocument();
     });
 
-    it('T1.3.5: advances to next question when "Câu tiếp theo" is clicked', () => {
+    it('T1.3.5: advances to next question when "Câu tiếp" is clicked', () => {
       render(<QuizInterface {...defaultProps} />);
       const firstOption = screen.getByText(mockMedicalQuestions[0].options[0].text).closest('button');
       fireEvent.click(firstOption!);
 
-      const nextBtn = screen.getByRole('button', { name: /Câu tiếp theo/i });
+      const nextBtn = screen.getByRole('button', { name: /Câu tiếp/i });
       fireEvent.click(nextBtn);
 
       expect(screen.getByText(/Câu hỏi 2 \/ 5/i)).toBeInTheDocument();
@@ -87,24 +87,24 @@ describe('Tier 1: QuizInterface Component', () => {
 
       // Answer question 1 (Correct: A)
       fireEvent.click(screen.getByText(mockMedicalQuestions[0].options[0].text).closest('button')!);
-      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
       // Answer question 2 (Correct: B)
       fireEvent.click(screen.getByText(mockMedicalQuestions[1].options[1].text).closest('button')!);
-      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
       // Answer question 3 (Incorrect: B, Correct is A)
       fireEvent.click(screen.getByText(mockMedicalQuestions[2].options[1].text).closest('button')!);
-      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
       // Answer question 4 (Correct: C)
       fireEvent.click(screen.getByText(mockMedicalQuestions[3].options[2].text).closest('button')!);
-      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
       // Answer question 5 (Correct: A)
       fireEvent.click(screen.getByText(mockMedicalQuestions[4].options[0].text).closest('button')!);
       
-      const finishBtn = screen.getByRole('button', { name: /Xem kết quả/i });
+      const finishBtn = screen.getByRole('button', { name: /Nộp bài/i });
       fireEvent.click(finishBtn);
 
       // Score screen should display 4 / 5 correct = 80%
@@ -131,7 +131,7 @@ describe('Tier 1: QuizInterface Component', () => {
       // Fast complete 5 questions
       for (let i = 0; i < mockMedicalQuestions.length; i++) {
         fireEvent.click(screen.getByText(mockMedicalQuestions[i].options[0].text).closest('button')!);
-        const btn = screen.getByRole('button', { name: i === 4 ? /Xem kết quả/i : /Câu tiếp theo/i });
+        const btn = screen.getByRole('button', { name: i === 4 ? /Nộp bài/i : /Câu tiếp/i });
         fireEvent.click(btn);
       }
 
@@ -216,12 +216,12 @@ describe('Tier 1: QuizInterface Component', () => {
     it('F11: supports bidirectional navigation via "Câu trước" button to revisit previous questions', () => {
       render(<QuizInterface {...defaultProps} />);
 
-      // On question 1 (index 0): "Câu trước" is not shown
-      expect(screen.queryByRole('button', { name: /Câu trước/i })).not.toBeInTheDocument();
+      // On question 1 (index 0): "Câu trước" is disabled
+      expect(screen.getByRole('button', { name: /Câu trước/i })).toBeDisabled();
 
       // Answer question 1 and advance to question 2
       fireEvent.click(screen.getByText(mockMedicalQuestions[0].options[0].text).closest('button')!);
-      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Câu tiếp/i }));
 
       // On question 2 (index 1): "Câu trước" is present
       const prevBtn = screen.getByRole('button', { name: /Câu trước/i });

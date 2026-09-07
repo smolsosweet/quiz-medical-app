@@ -94,7 +94,7 @@ describe('Non-Destructive Navigation Empirical Suite (F04)', () => {
         const optionA = screen.getAllByRole('radio')[0];
         fireEvent.click(optionA);
         const nextBtn = screen.getByRole('button', {
-          name: i === mockMedicalQuestions.length - 1 ? /Xem kết quả/i : /Câu tiếp theo/i,
+          name: i === mockMedicalQuestions.length - 1 ? /Nộp bài/i : /Câu tiếp/i,
         });
         fireEvent.click(nextBtn);
       }
@@ -302,7 +302,7 @@ describe('Non-Destructive Navigation Empirical Suite (F04)', () => {
         fireEvent.click(screen.getAllByRole('radio')[0]);
         fireEvent.click(
           screen.getByRole('button', {
-            name: i === mockMedicalQuestions.length - 1 ? /Xem kết quả/i : /Câu tiếp theo/i,
+            name: i === mockMedicalQuestions.length - 1 ? /Nộp bài/i : /Câu tiếp/i,
           })
         );
       }
@@ -381,7 +381,7 @@ describe('Non-Destructive Navigation Empirical Suite (F04)', () => {
         fireEvent.click(screen.getAllByRole('radio')[0]);
         fireEvent.click(
           screen.getByRole('button', {
-            name: i === mockMedicalQuestions.length - 1 ? /Xem kết quả/i : /Câu tiếp theo/i,
+            name: i === mockMedicalQuestions.length - 1 ? /Nộp bài/i : /Câu tiếp/i,
           })
         );
       }

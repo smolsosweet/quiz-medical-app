@@ -59,7 +59,7 @@ describe('Tier 3: Cross-Feature Combinations', () => {
       fireEvent.click(optionA);
 
       const actionBtn = screen.getByRole('button', {
-        name: i === mockMedicalQuestions.length - 1 ? /Xem kết quả/i : /Câu tiếp theo/i,
+        name: i === mockMedicalQuestions.length - 1 ? /Nộp bài/i : /Câu tiếp/i,
       });
       fireEvent.click(actionBtn);
     }
@@ -108,7 +108,7 @@ describe('Tier 3: Cross-Feature Combinations', () => {
     // Complete Round 1
     for (let i = 0; i < 5; i++) {
       fireEvent.click(screen.getAllByRole('radio')[0]);
-      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /Xem kết quả/i : /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /Nộp bài/i : /Câu tiếp/i }));
     }
 
     expect(screen.getByText(/Hoàn Thành Bài Kiểm Tra!/i)).toBeInTheDocument();
@@ -131,7 +131,7 @@ describe('Tier 3: Cross-Feature Combinations', () => {
     // Complete Round 2
     for (let i = 0; i < 5; i++) {
       fireEvent.click(screen.getAllByRole('radio')[0]);
-      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /Xem kết quả/i : /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /Nộp bài/i : /Câu tiếp/i }));
     }
 
     // Return to dashboard
@@ -243,7 +243,7 @@ describe('Tier 3: Cross-Feature Combinations', () => {
     // Complete quiz
     for (let i = 0; i < 5; i++) {
       fireEvent.click(screen.getAllByRole('radio')[0]);
-      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /Xem kết quả/i : /Câu tiếp theo/i }));
+      fireEvent.click(screen.getByRole('button', { name: i === 4 ? /Nộp bài/i : /Câu tiếp/i }));
     }
 
     // Go to review

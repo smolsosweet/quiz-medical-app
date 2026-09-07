@@ -108,7 +108,7 @@ describe('Tier 2: Boundary & Corner Cases', () => {
 
       // Answer correct: A
       fireEvent.click(screen.getByText(singleQuestion[0].options[0].text).closest('button')!);
-      fireEvent.click(screen.getByRole('button', { name: /Xem kết quả/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Nộp bài/i }));
 
       expect(screen.getByText('100%')).toBeInTheDocument();
       expect(screen.getByText(/Bạn đã trả lời đúng 1 \/ 1 câu hỏi/i)).toBeInTheDocument();
@@ -129,7 +129,7 @@ describe('Tier 2: Boundary & Corner Cases', () => {
 
       // Answer incorrect: B (correct is A)
       fireEvent.click(screen.getByText(singleQuestion[0].options[1].text).closest('button')!);
-      fireEvent.click(screen.getByRole('button', { name: /Xem kết quả/i }));
+      fireEvent.click(screen.getByRole('button', { name: /Nộp bài/i }));
 
       expect(screen.getByText('0%')).toBeInTheDocument();
       expect(screen.getByText(/Bạn đã trả lời đúng 0 \/ 1 câu hỏi/i)).toBeInTheDocument();
@@ -162,7 +162,7 @@ describe('Tier 2: Boundary & Corner Cases', () => {
       expect(screen.queryByText('Chưa chính xác!')).not.toBeInTheDocument();
     });
 
-    it('T2.12: does not advance question index if "Câu tiếp theo" is clicked multiple times rapidly', () => {
+    it('T2.12: does not advance question index if "Câu tiếp" is clicked multiple times rapidly', () => {
       render(
         <QuizInterface
           questions={mockMedicalQuestions}
@@ -175,14 +175,14 @@ describe('Tier 2: Boundary & Corner Cases', () => {
 
       // Answer question 1
       fireEvent.click(screen.getByText(mockMedicalQuestions[0].options[0].text).closest('button')!);
-      const nextBtn = screen.getByRole('button', { name: /Câu tiếp theo/i });
+      const nextBtn = screen.getByRole('button', { name: /Câu tiếp/i });
 
       // Click next
       fireEvent.click(nextBtn);
 
       // Now at question 2, nextBtn is removed until question 2 is answered
       expect(screen.getByText(/Câu hỏi 2 \/ 5/i)).toBeInTheDocument();
-      expect(screen.queryByRole('button', { name: /Câu tiếp theo/i })).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Câu tiếp/i })).toBeDisabled();
     });
   });
 
