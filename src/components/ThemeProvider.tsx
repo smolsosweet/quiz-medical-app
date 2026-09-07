@@ -13,14 +13,12 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>("light");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
     let savedTheme: Theme | null = null;
     try {
       savedTheme = localStorage.getItem("theme") as Theme | null;
-    } catch (e) {
+    } catch {
       console.warn("localStorage not available");
     }
 
@@ -41,7 +39,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         if (!localStorage.getItem("theme")) {
           applyTheme(e.matches ? "dark" : "light");
         }
-      } catch (err) {}
+      } catch {}
     };
     
     mediaQuery.addEventListener("change", handleChange);
@@ -54,7 +52,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     document.documentElement.setAttribute("data-theme", newTheme);
     try {
       localStorage.setItem("theme", newTheme);
-    } catch (e) {}
+    } catch {}
   };
 
   // To avoid SSR hydration mismatch on the theme value while still providing the context,

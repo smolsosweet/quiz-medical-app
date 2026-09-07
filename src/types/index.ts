@@ -26,3 +26,9 @@ export interface QuizSession {
   filesCount: number;
   rounds: QuizRound[];
 }
+
+export interface StoredQuizSession extends QuizSession {
+  version?: number; // schema version e.g. 1
+  createdAt?: number; // timestamp
+}
+

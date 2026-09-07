@@ -23,6 +23,7 @@ const MAX_FILES = 5;
 const ALLOWED_MIME_TYPES = [
   "application/pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "text/plain",
   "image/png",
   "image/jpeg",
   "image/jpg"
@@ -43,14 +44,20 @@ export default function UploadConfig({
     setLocalError("");
     const validFiles: File[] = [];
     
-    if (files.length + newFiles.length > MAX_FILES) {
+    if ((files?.length || 0) + newFiles.length > MAX_FILES) {
       setLocalError(`Bạn chỉ được tải lên tối đa ${MAX_FILES} file.`);
       return [];
     }
 
     for (const file of newFiles) {
-      if (!ALLOWED_MIME_TYPES.includes(file.type)) {
-        setLocalError(`Định dạng không hỗ trợ: ${file.name}. Chỉ nhận PDF, DOCX, PNG, JPG.`);
+      const isAllowedType = 
+        ALLOWED_MIME_TYPES.includes(file.type) ||
+        file.name.toLowerCase().endsWith(".txt") ||
+        file.name.toLowerCase().endsWith(".pdf") ||
+        file.name.toLowerCase().endsWith(".docx");
+
+      if (!isAllowedType) {
+        setLocalError(`Định dạng không hỗ trợ: ${file.name}. Chỉ nhận PDF, DOCX, TXT, PNG, JPG.`);
         continue;
       }
       if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
@@ -58,7 +65,7 @@ export default function UploadConfig({
         continue;
       }
       // Check duplicates
-      if (files.some(f => f.name === file.name && f.size === file.size)) {
+      if (files?.some(f => f.name === file.name && f.size === file.size)) {
         continue;
       }
       validFiles.push(file);
@@ -124,9 +131,9 @@ export default function UploadConfig({
       <div className="glass-panel animate-fade-in" style={{ width: '100%', padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
         <h2 style={{ textAlign: 'left', marginBottom: '2rem', fontSize: '1.75rem', fontWeight: 700 }}>Tạo Bộ Trắc Nghiệm Mới</h2>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', flex: 1 }}>
-          {/* Cột trái: Tải file */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="bento-grid" style={{ flex: 1 }}>
+          {/* Cột trái: Tải file (7 cols desktop, 1 col mobile) */}
+          <div className="bento-col-7" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             <div 
               role="button"
               tabIndex={0}
@@ -148,6 +155,7 @@ export default function UploadConfig({
                 cursor: 'pointer',
                 backgroundColor: 'var(--surface-color)',
                 flex: 1,
+                minHeight: '180px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
@@ -160,27 +168,54 @@ export default function UploadConfig({
                 ref={fileInputRef} 
                 onChange={handleFileChange} 
                 style={{ display: 'none' }}
-                accept=".pdf,.docx,.png,.jpg,.jpeg"
+                accept=".pdf,.docx,.txt,.png,.jpg,.jpeg"
                 multiple
               />
               <UploadCloud size={40} color="var(--primary-color)" />
               <p style={{ fontWeight: 600, fontSize: '1rem' }}>Kéo thả file vào đây</p>
-              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Hỗ trợ PDF, DOCX, Ảnh (Tối đa {MAX_FILE_SIZE_MB}MB)</p>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Hỗ trợ PDF, DOCX, TXT, Ảnh (Tối đa {MAX_FILE_SIZE_MB}MB)</p>
             </div>
 
-            {files.length > 0 && (
-              <div style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '150px', overflowY: 'auto' }}>
+            {Array.isArray(files) && files.length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '160px', overflowY: 'auto' }}>
                 {files.map((f, i) => (
-                  <div key={`${f.name}-${i}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', backgroundColor: 'var(--surface-color)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
-                      {f.type.includes('image') ? <ImageIcon size={16} color="var(--primary-color)" /> : <File size={16} color="var(--primary-color)" />}
-                      <span style={{ fontSize: '0.85rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</span>
+                  <div 
+                    key={`${f.name}-${i}`} 
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'space-between', 
+                      padding: '0.5rem 0.75rem', 
+                      backgroundColor: 'var(--surface-color)', 
+                      borderRadius: '8px', 
+                      border: '1px solid var(--border-color)',
+                      gap: '0.75rem',
+                      minWidth: 0,
+                      width: '100%'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, flex: 1 }}>
+                      <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
+                        {f.type.includes('image') ? <ImageIcon size={16} color="var(--primary-color)" /> : <File size={16} color="var(--primary-color)" />}
+                      </span>
+                      <span style={{ 
+                        fontSize: '0.85rem', 
+                        fontWeight: 500, 
+                        whiteSpace: 'nowrap', 
+                        overflow: 'hidden', 
+                        textOverflow: 'ellipsis',
+                        minWidth: 0,
+                        flex: 1
+                      }}>
+                        {f.name}
+                      </span>
                     </div>
                     <button 
                       onClick={(e) => { e.stopPropagation(); removeFile(i); }} 
                       className="btn-secondary"
-                      style={{ padding: '0.2rem', border: 'none', color: 'var(--error-color)' }}
+                      style={{ padding: '0.25rem', border: 'none', color: 'var(--error-color)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       title="Xóa"
+                      aria-label={`Xóa file ${f.name}`}
                     >
                       <XCircle size={16} />
                     </button>
@@ -190,66 +225,68 @@ export default function UploadConfig({
             )}
           </div>
 
-          {/* Cột phải: Cấu hình */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', justifyContent: 'center' }}>
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                Phiên bản AI (Model)
-              </label>
-              <select 
-                className="input-field" 
-                value={model}
-                onChange={(e) => setModel(e.target.value)}
-                style={{ padding: '0.5rem', fontSize: '0.9rem' }}
-              >
-                <option value="gemini-2.5-flash">Gemini 2.5 Flash (Khuyên dùng)</option>
-                <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Nhanh nhất)</option>
-              </select>
-            </div>
-            
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                Số lượng câu hỏi (1-50)
-              </label>
-              <input 
-                type="number" 
-                className="input-field" 
-                min={1} max={50}
-                value={numQuestions || ""}
-                onChange={handleNumQuestionsChange}
-                onBlur={() => {
-                  if (numQuestions < 1) setNumQuestions(10);
-                  if (numQuestions > 50) setNumQuestions(50);
-                }}
-                style={{ padding: '0.5rem', fontSize: '0.9rem' }}
-              />
-            </div>
-
-            <div>
-              <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.9rem', fontWeight: 500 }}>
-                Phạm vi nội dung (Tùy chọn)
-              </label>
-              <textarea 
-                className="input-field" 
-                placeholder="Ví dụ: Chỉ chương 4..."
-                value={scope}
-                onChange={(e) => setScope(e.target.value)}
-                maxLength={1000}
-                style={{ minHeight: '60px', resize: 'none', padding: '0.5rem', fontSize: '0.9rem' }}
-              />
-            </div>
-
-            {(error || localError) && (
-              <div style={{ padding: '0.5rem', backgroundColor: 'var(--error-bg)', color: 'var(--error-color)', borderRadius: '6px', fontSize: '0.85rem' }}>
-                {localError || error}
+          {/* Cột phải: Cấu hình (5 cols desktop, 1 col mobile) */}
+          <div className="bento-col-5" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                  Phiên bản AI (Model)
+                </label>
+                <select 
+                  className="input-field" 
+                  value={model}
+                  onChange={(e) => setModel(e.target.value)}
+                  style={{ padding: '0.5rem', fontSize: '0.9rem' }}
+                >
+                  <option value="gemini-2.5-flash">Gemini 2.5 Flash (Khuyên dùng)</option>
+                  <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash Lite (Nhanh nhất)</option>
+                </select>
               </div>
-            )}
+              
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                  Số lượng câu hỏi (1-50)
+                </label>
+                <input 
+                  type="number" 
+                  className="input-field" 
+                  min={1} max={50}
+                  value={numQuestions || ""}
+                  onChange={handleNumQuestionsChange}
+                  onBlur={() => {
+                    if (numQuestions < 1) setNumQuestions(10);
+                    if (numQuestions > 50) setNumQuestions(50);
+                  }}
+                  style={{ padding: '0.5rem', fontSize: '0.9rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '0.3rem', fontSize: '0.9rem', fontWeight: 500 }}>
+                  Phạm vi nội dung (Tùy chọn)
+                </label>
+                <textarea 
+                  className="input-field" 
+                  placeholder="Ví dụ: Chỉ chương 4..."
+                  value={scope}
+                  onChange={(e) => setScope(e.target.value)}
+                  maxLength={1000}
+                  style={{ minHeight: '60px', resize: 'none', padding: '0.5rem', fontSize: '0.9rem' }}
+                />
+              </div>
+
+              {(error || localError) && (
+                <div style={{ padding: '0.5rem', backgroundColor: 'var(--error-bg)', color: 'var(--error-color)', borderRadius: '6px', fontSize: '0.85rem' }}>
+                  {localError || error}
+                </div>
+              )}
+            </div>
 
             <button 
               className="btn-primary" 
               onClick={handleGenerateClick} 
               disabled={isGenerating || files.length === 0}
-              style={{ width: '100%', padding: '0.75rem', fontSize: '1rem', marginTop: 'auto' }}
+              style={{ width: '100%', padding: '0.75rem', fontSize: '1rem', marginTop: '1rem' }}
             >
               {isGenerating ? (
                 <>
@@ -269,34 +306,50 @@ export default function UploadConfig({
       `}} />
 
       {/* Lịch sử các phiên học */}
-      {sessions.length > 0 && (
+      {Array.isArray(sessions) && sessions.length > 0 && (
         <div className="glass-panel animate-fade-in" style={{ width: '100%' }}>
           <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem' }}>
             <History size={24} color="var(--primary-color)" />
             Lịch sử học tập phiên này
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {sessions.map((session) => (
-              <div 
-                key={session.id} 
-                onClick={() => onViewHistory && onViewHistory(session)}
-                className="quiz-option"
-                style={{ 
-                  display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
-                  padding: '1.25rem', backgroundColor: 'var(--surface-color)', 
-                  borderRadius: '12px', border: '1px solid var(--border-color)',
-                  cursor: 'pointer'
-                }}
-              >
-                <div>
-                  <h4 style={{ fontSize: '1.1rem', marginBottom: '0.25rem' }}>{session.title} {session.filesCount > 1 ? `(+${session.filesCount - 1} tệp)` : ''}</h4>
-                  <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                    {session.date} • {session.rounds.length} lượt tạo • Tổng {session.rounds.reduce((acc, r) => acc + r.questions.length, 0)} câu
-                  </p>
+            {sessions.map((session) => {
+              const sessionRounds = Array.isArray(session?.rounds) ? session.rounds : [];
+              const totalQuestions = sessionRounds.reduce(
+                (acc, r) => acc + (Array.isArray(r?.questions) ? r.questions.length : 0), 
+                0
+              );
+              return (
+                <div 
+                  key={session.id} 
+                  onClick={() => onViewHistory && onViewHistory(session)}
+                  className="quiz-option"
+                  style={{ 
+                    display: 'flex', justifyContent: 'space-between', alignItems: 'center', 
+                    padding: '1.25rem', backgroundColor: 'var(--surface-color)', 
+                    borderRadius: '12px', border: '1px solid var(--border-color)',
+                    cursor: 'pointer',
+                    gap: '1rem'
+                  }}
+                >
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <h4 style={{ 
+                      fontSize: '1.1rem', 
+                      marginBottom: '0.25rem',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}>
+                      {session.title} {session.filesCount > 1 ? `(+${session.filesCount - 1} tệp)` : ''}
+                    </h4>
+                    <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                      {session.date} • {sessionRounds.length} lượt tạo • Tổng {totalQuestions} câu
+                    </p>
+                  </div>
+                  <ChevronRight color="var(--text-muted)" style={{ flexShrink: 0 }} />
                 </div>
-                <ChevronRight color="var(--text-muted)" />
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI } from "@google/genai";
 import mammoth from "mammoth";
 import crypto from "crypto";
+import { Question, AnswerLabel } from "@/types";
 
 export const maxDuration = 60; // Tăng giới hạn thời gian chờ của Vercel (Hobby tier tối đa là 60s)
 
@@ -19,7 +20,8 @@ type Part = { text: string } | { inlineData: { data: string; mimeType: string } 
 export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
-    const files = formData.getAll("files") as File[];
+    const rawFiles = formData.getAll("files");
+    const files = rawFiles.filter((f): f is File => f instanceof File);
     const numQuestionsStr = formData.get("numQuestions") as string | null;
     const scope = formData.get("scope") as string | null;
     const previousQuestionsText = formData.get("previousQuestionsText") as string | null;
@@ -37,7 +39,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Lỗi cấu hình Server: Thiếu API Key." }, { status: 500 });
     }
 
-    let numQuestions = parseInt(numQuestionsStr, 10);
+    const numQuestions = parseInt(numQuestionsStr, 10);
     if (isNaN(numQuestions) || numQuestions < 1 || numQuestions > 50) {
       return NextResponse.json({ error: "Số lượng câu hỏi phải nằm trong khoảng 1 đến 50." }, { status: 400 });
     }
@@ -53,20 +55,32 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: `File ${file.name} quá lớn (tối đa ${MAX_FILE_SIZE_MB}MB).` }, { status: 400 });
       }
 
-      const buffer = Buffer.from(await file.arrayBuffer());
-      if (file.type === "application/pdf" || file.type.startsWith("image/")) {
-        // Gửi thẳng file PDF và Ảnh cho Gemini dưới dạng Base64
+      const isTxt = file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt");
+      const isDocx = file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document" || file.name.toLowerCase().endsWith(".docx");
+      const isPdfOrImage = file.type === "application/pdf" || file.type.startsWith("image/") || file.name.toLowerCase().endsWith(".pdf");
+
+      if (isTxt) {
+        try {
+          const textContent = await file.text();
+          documentText += `\n--- Tài liệu TXT: ${file.name} ---\n${textContent}\n`;
+        } catch {
+          return NextResponse.json({ error: `Không thể đọc file TXT: ${file.name}` }, { status: 400 });
+        }
+      } else if (isPdfOrImage) {
+        const buffer = Buffer.from(await file.arrayBuffer());
+        const mimeType = file.type || (file.name.toLowerCase().endsWith(".pdf") ? "application/pdf" : "image/jpeg");
         fileParts.push({
           inlineData: {
             data: buffer.toString("base64"),
-            mimeType: file.type
+            mimeType
           }
         });
-      } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      } else if (isDocx) {
         try {
+          const buffer = Buffer.from(await file.arrayBuffer());
           const result = await mammoth.extractRawText({ buffer });
           documentText += `\n--- Tài liệu: ${file.name} ---\n${result.value}\n`;
-        } catch (e) {
+        } catch {
           return NextResponse.json({ error: `Không thể đọc file DOCX: ${file.name}` }, { status: 400 });
         }
       } else {
@@ -149,24 +163,38 @@ Bạn PHẢI trả về dữ liệu dưới dạng JSON nguyên chất (không �
     let responseText = response.text || "";
 
     // Parse JSON an toàn hơn
-    let parsedData: any;
+    interface GeneratedOption {
+      label?: unknown;
+      text?: unknown;
+    }
+    interface GeneratedQuestion {
+      text?: unknown;
+      options?: GeneratedOption[];
+      correctAnswer?: unknown;
+      explanation?: unknown;
+    }
+    interface GeneratedData {
+      questions?: GeneratedQuestion[];
+    }
+
+    let parsedData: GeneratedData | null = null;
     try {
       // Vì đã cài đặt responseMimeType="application/json", thường responseText đã là JSON hợp lệ.
       // Nhưng nếu AI vẫn trả markdown block thì cắt nó đi.
       if (responseText.startsWith("```json")) {
         responseText = responseText.replace(/^```json\n/, "").replace(/\n```$/, "");
       }
-      parsedData = JSON.parse(responseText);
-    } catch (parseError) {
+      parsedData = JSON.parse(responseText) as GeneratedData;
+    } catch {
       // Fallback fallback: regex trích xuất mảng JSON
       try {
         const match = responseText.match(/\{[\s\S]*\}/);
         if (match) {
-          parsedData = JSON.parse(match[0]);
+          parsedData = JSON.parse(match[0]) as GeneratedData;
         } else {
           throw new Error();
         }
-      } catch (e2) {
+      } catch {
         console.error("Lỗi parse JSON:", responseText);
         return NextResponse.json({ error: "AI không trả về đúng định dạng JSON hoặc dữ liệu quá dài bị cắt đứt." }, { status: 500 });
       }
@@ -177,22 +205,24 @@ Bạn PHẢI trả về dữ liệu dưới dạng JSON nguyên chất (không �
       return NextResponse.json({ error: "Dữ liệu trả về không đúng cấu trúc (thiếu questions array)." }, { status: 500 });
     }
 
-    const validQuestions = [];
+    const validQuestions: Question[] = [];
     for (const q of parsedData.questions) {
       if (
-        q.text && 
+        typeof q.text === "string" && 
+        q.text.trim().length > 0 &&
         Array.isArray(q.options) && 
         q.options.length === 4 && 
+        typeof q.correctAnswer === "string" &&
         ["A", "B", "C", "D"].includes(q.correctAnswer)
       ) {
         validQuestions.push({
           id: crypto.randomUUID(),
-          text: String(q.text),
-          options: q.options.map((opt: any) => ({
-            label: String(opt.label),
-            text: String(opt.text)
+          text: q.text,
+          options: q.options.map((opt: GeneratedOption) => ({
+            label: (opt.label ? String(opt.label) : "") as AnswerLabel,
+            text: String(opt.text || "")
           })),
-          correctAnswer: String(q.correctAnswer),
+          correctAnswer: q.correctAnswer as AnswerLabel,
           explanation: String(q.explanation || "")
         });
       }

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { Question, QuizRound, AnswerLabel } from "@/types";
-import { CheckCircle2, XCircle, ChevronRight, RefreshCw, Upload, List, Printer } from "lucide-react";
+import { CheckCircle2, XCircle, ChevronRight, ChevronLeft, RefreshCw, Upload, List, Printer } from "lucide-react";
+import QuestionNavigator from "@/components/QuestionNavigator";
 
 interface Props {
   questions: Question[];
@@ -11,46 +12,50 @@ interface Props {
   onGenerateMore: (numQ: number) => void;
   onFinishRound?: (userAnswers: Record<string, AnswerLabel>) => void;
   isGenerating: boolean;
-  error: string;
+  error?: string | null;
   onNewFile: () => void;
+  onBackToDashboard?: () => void;
 }
 
 export default function QuizInterface({ 
-  questions, 
+  questions = [], 
   isReviewMode = false, 
   historyRounds = [], 
   onGenerateMore, 
   onFinishRound, 
   isGenerating, 
   error, 
-  onNewFile 
+  onNewFile,
+  onBackToDashboard
 }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [userAnswers, setUserAnswers] = useState<Record<string, AnswerLabel>>({});
   const [isFinished, setIsFinished] = useState(isReviewMode);
   const [showReview, setShowReview] = useState(isReviewMode);
+  const [isNavigatorOpen, setIsNavigatorOpen] = useState(false);
   const hasFinishedRef = useRef(false);
   
   const [showAddQuestions, setShowAddQuestions] = useState(false);
   const [newNumQuestions, setNewNumQuestions] = useState(10);
 
-  // Sync state when entering review mode from history
-  useEffect(() => {
-    if (isReviewMode) {
-      setIsFinished(true);
-      setShowReview(true);
+  // Sync state if questions change during active quiz (without resetting in review mode)
+  const [prevQuestions, setPrevQuestions] = useState(questions);
+  if (questions !== prevQuestions) {
+    setPrevQuestions(questions);
+    if (!isReviewMode) {
+      setCurrentIndex(0);
+      setUserAnswers({});
+      setIsFinished(false);
+      setShowReview(false);
+      setShowAddQuestions(false);
     }
-  }, [isReviewMode]);
+  }
 
-  // Reset lock when questions change (new round)
   useEffect(() => {
-    hasFinishedRef.current = false;
-    setCurrentIndex(0);
-    setUserAnswers({});
-    setIsFinished(false);
-    setShowReview(false);
-    setShowAddQuestions(false);
-  }, [questions]);
+    if (!isFinished) {
+      hasFinishedRef.current = false;
+    }
+  }, [isFinished]);
 
   useEffect(() => {
     if (isFinished && !isReviewMode && onFinishRound && !hasFinishedRef.current) {
@@ -59,7 +64,10 @@ export default function QuizInterface({
     }
   }, [isFinished, isReviewMode, onFinishRound, userAnswers]);
 
-  const currentQuestion = questions && questions.length > 0 ? questions[currentIndex] : null;
+  const safeQuestions = Array.isArray(questions) ? questions : [];
+  const currentQuestion = safeQuestions.length > 0 && currentIndex < safeQuestions.length 
+    ? safeQuestions[currentIndex] 
+    : null;
   const hasAnsweredCurrent = currentQuestion ? !!userAnswers[currentQuestion.id] : false;
   const selectedAnswer = currentQuestion ? userAnswers[currentQuestion.id] : undefined;
   const isCorrect = currentQuestion ? selectedAnswer === currentQuestion.correctAnswer : false;
@@ -73,30 +81,38 @@ export default function QuizInterface({
   };
 
   const handleNext = () => {
-    if (currentIndex < questions.length - 1) {
+    if (currentIndex < safeQuestions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
     } else {
       setIsFinished(true);
     }
   };
 
-  if (isFinished) {
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex((prev) => prev - 1);
+    }
+  };
+
+  const shouldShowReview = isReviewMode || (isFinished && showReview);
+
+  // Render Review Mode or Finished State
+  if (isReviewMode || isFinished) {
+    const totalQuestions = safeQuestions.length;
     let scorePercent = 0;
     let correctCount = 0;
     
-    if (!isReviewMode && questions.length > 0) {
-      correctCount = Object.keys(userAnswers).filter(
-        (qId) => {
-          const q = questions.find(question => question.id === qId);
-          return q?.correctAnswer === userAnswers[qId];
-        }
-      ).length;
-      scorePercent = Math.round((correctCount / questions.length) * 100);
+    if (!isReviewMode && totalQuestions > 0) {
+      correctCount = Object.keys(userAnswers).filter((qId) => {
+        const q = safeQuestions.find((question) => question?.id === qId);
+        return q?.correctAnswer && q.correctAnswer === userAnswers[qId];
+      }).length;
+      scorePercent = Math.round((correctCount / totalQuestions) * 100);
     }
 
     return (
       <div className="glass-panel animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
-        {!showReview ? (
+        {!shouldShowReview ? (
           showAddQuestions ? (
             <div style={{ textAlign: 'center', padding: '2rem 0' }}>
               <h2 style={{ fontSize: '1.5rem', marginBottom: '1.5rem' }}>Số lượng câu hỏi muốn tạo thêm? (1-50)</h2>
@@ -148,7 +164,7 @@ export default function QuizInterface({
                 {scorePercent}%
               </div>
               <p style={{ fontSize: '1.2rem', marginBottom: '2rem' }}>
-                Bạn đã trả lời đúng {correctCount} / {questions.length} câu hỏi.
+                Bạn đã trả lời đúng {correctCount} / {totalQuestions} câu hỏi.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxWidth: '300px', margin: '0 auto' }}>
@@ -172,75 +188,101 @@ export default function QuizInterface({
                 <button className="btn-primary" onClick={() => window.print()} title="In trang này ra PDF">
                   <Printer size={20} /> In PDF
                 </button>
-                <button className="btn-secondary" onClick={() => {
-                  if (isReviewMode) {
-                    onNewFile();
-                  } else {
-                    setShowReview(false);
-                  }
-                }}>Quay lại</button>
+                <button 
+                  className="btn-secondary" 
+                  onClick={() => {
+                    if (isReviewMode) {
+                      if (onBackToDashboard) {
+                        onBackToDashboard();
+                      } else {
+                        onNewFile();
+                      }
+                    } else {
+                      setShowReview(false);
+                    }
+                  }}
+                >
+                  Quay lại
+                </button>
               </div>
             </div>
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '3rem' }}>
-              {historyRounds.length > 0 ? (
-                historyRounds.map((round) => (
-                  <div key={round.id} style={{ border: '1px solid var(--border-color)', padding: '1.5rem', borderRadius: '12px', backgroundColor: 'var(--surface-color)' }}>
-                    <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)', borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>{round.id}</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                      {round.questions.map((q, idx) => {
-                        const uAns = round.userAnswers?.[q.id];
-                        const isQCorrect = uAns === q.correctAnswer;
-                        return (
-                          <div 
-                            key={q.id} 
-                            className="animate-fade-in" 
-                            style={{ animationDelay: `${idx * 0.1}s`, animationFillMode: 'both' }}
-                          >
-                            <h4 style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '1rem' }}>
-                              <span style={{ color: isQCorrect ? 'var(--success-color)' : 'var(--error-color)', marginTop: '2px' }} aria-hidden="true">
-                                {isQCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-                              </span>
-                              <span>Câu {idx + 1}: {q.text}</span>
-                            </h4>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginLeft: '2rem' }}>
-                              {q.options.map((opt) => {
-                                let bgColor = 'transparent';
-                                let borderColor = 'var(--border-color)';
-                                if (opt.label === q.correctAnswer) {
-                                  bgColor = 'var(--success-bg)';
-                                  borderColor = 'var(--success-color)';
-                                } else if (opt.label === uAns && !isQCorrect) {
-                                  bgColor = 'var(--error-bg)';
-                                  borderColor = 'var(--error-color)';
-                                }
-                                
-                                return (
-                                  <div key={opt.label} style={{ 
-                                    padding: '0.75rem 1rem', 
-                                    borderRadius: '8px', 
-                                    border: `1px solid ${borderColor}`,
-                                    backgroundColor: bgColor,
-                                    display: 'flex', gap: '0.75rem'
-                                  }}>
-                                    <strong>{opt.label}.</strong> {opt.text}
-                                    {opt.label === q.correctAnswer && <span className="sr-only" style={{position:'absolute', width:1, height:1, padding:0, margin:-1, overflow:'hidden', clip:'rect(0,0,0,0)', border:0}}> - Đáp án đúng</span>}
-                                    {opt.label === uAns && !isQCorrect && <span className="sr-only" style={{position:'absolute', width:1, height:1, padding:0, margin:-1, overflow:'hidden', clip:'rect(0,0,0,0)', border:0}}> - Đáp án của bạn (Sai)</span>}
+              {Array.isArray(historyRounds) && historyRounds.length > 0 ? (
+                historyRounds.map((round, rIdx) => {
+                  const roundQuestions = Array.isArray(round?.questions) ? round.questions : [];
+                  return (
+                    <div key={round?.id || `round-${rIdx}`} style={{ border: '1px solid var(--border-color)', padding: '1.5rem', borderRadius: '12px', backgroundColor: 'var(--surface-color)' }}>
+                      <h3 style={{ marginBottom: '1.5rem', color: 'var(--primary-color)', borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+                        {round?.id || `Lần ${rIdx + 1}`}
+                      </h3>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                        {roundQuestions.length > 0 ? (
+                          roundQuestions.map((q, idx) => {
+                            if (!q) return null;
+                            const uAns = round.userAnswers?.[q.id];
+                            const isQCorrect = uAns === q.correctAnswer;
+                            const qOptions = Array.isArray(q.options) ? q.options : [];
+                            return (
+                              <div 
+                                key={q.id || `q-${idx}`} 
+                                className="review-question-card question-card animate-fade-in" 
+                                style={{ animationDelay: `${Math.min(idx * 0.03, 0.3)}s`, animationFillMode: 'both' }}
+                              >
+                                <h4 style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '1rem', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                                  <span style={{ color: isQCorrect ? 'var(--success-color)' : 'var(--error-color)', marginTop: '2px', flexShrink: 0 }} aria-hidden="true">
+                                    {isQCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+                                  </span>
+                                  <span style={{ wordBreak: 'break-word', overflowWrap: 'break-word' }}>Câu {idx + 1}: {q.text}</span>
+                                </h4>
+                                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginLeft: '2rem' }}>
+                                  {qOptions.map((opt) => {
+                                    if (!opt) return null;
+                                    let bgColor = 'transparent';
+                                    let borderColor = 'var(--border-color)';
+                                    if (opt.label === q.correctAnswer) {
+                                      bgColor = 'var(--success-bg)';
+                                      borderColor = 'var(--success-color)';
+                                    } else if (opt.label === uAns && !isQCorrect) {
+                                      bgColor = 'var(--error-bg)';
+                                      borderColor = 'var(--error-color)';
+                                    }
+                                    
+                                    return (
+                                      <div key={opt.label} style={{ 
+                                        padding: '0.75rem 1rem', 
+                                        borderRadius: '8px', 
+                                        border: `1px solid ${borderColor}`,
+                                        backgroundColor: bgColor,
+                                        display: 'flex', 
+                                        alignItems: 'flex-start',
+                                        gap: '0.75rem',
+                                        wordBreak: 'break-word',
+                                        overflowWrap: 'break-word'
+                                      }}>
+                                        <strong style={{ flexShrink: 0, marginTop: '1px' }}>{opt.label}.</strong> 
+                                        <span style={{ flex: 1, wordBreak: 'break-word', overflowWrap: 'break-word' }}>{opt.text}</span>
+                                        {opt.label === q.correctAnswer && <span className="sr-only" style={{position:'absolute', width:1, height:1, padding:0, margin:-1, overflow:'hidden', clip:'rect(0,0,0,0)', border:0}}> - Đáp án đúng</span>}
+                                        {opt.label === uAns && !isQCorrect && <span className="sr-only" style={{position:'absolute', width:1, height:1, padding:0, margin:-1, overflow:'hidden', clip:'rect(0,0,0,0)', border:0}}> - Đáp án của bạn (Sai)</span>}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                                {q.explanation && (
+                                  <div style={{ marginTop: '1rem', marginLeft: '2rem', padding: '1rem', backgroundColor: 'var(--surface-glass)', borderRadius: '8px', borderLeft: '4px solid var(--primary-color)', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
+                                    <strong>Giải thích:</strong> {q.explanation}
                                   </div>
-                                );
-                              })}
-                            </div>
-                            {q.explanation && (
-                              <div style={{ marginTop: '1rem', marginLeft: '2rem', padding: '1rem', backgroundColor: 'var(--surface-glass)', borderRadius: '8px', borderLeft: '4px solid var(--primary-color)' }}>
-                                <strong>Giải thích:</strong> {q.explanation}
+                                )}
                               </div>
-                            )}
-                          </div>
-                        );
-                      })}
+                            );
+                          })
+                        ) : (
+                          <p style={{ color: 'var(--text-muted)' }}>Vòng thi này chưa có câu hỏi.</p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))
+                  );
+                })
               ) : (
                 <p>Không có dữ liệu đánh giá.</p>
               )}
@@ -251,19 +293,46 @@ export default function QuizInterface({
     );
   }
 
-  if (!currentQuestion) return null;
+  // Active Quiz Render - Guard against empty or missing questions
+  if (!currentQuestion) {
+    return (
+      <div className="glass-panel animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', width: '100%', textAlign: 'center', padding: '2rem' }}>
+        <p>Không có câu hỏi nào để hiển thị.</p>
+        <button 
+          className="btn-secondary" 
+          style={{ marginTop: '1rem' }} 
+          onClick={onBackToDashboard || onNewFile}
+        >
+          Quay lại
+        </button>
+      </div>
+    );
+  }
+
+  const progressTotal = safeQuestions.length > 0 ? safeQuestions.length : 1;
+  const progressPercent = Math.round((currentIndex / progressTotal) * 100);
 
   return (
     <div className="glass-panel animate-fade-in" style={{ maxWidth: '800px', margin: '0 auto', width: '100%' }}>
+      {/* Question Navigator Drawer (F11) */}
+      <QuestionNavigator 
+        questions={safeQuestions}
+        currentIndex={currentIndex}
+        userAnswers={userAnswers}
+        onSelectQuestion={(idx) => setCurrentIndex(idx)}
+        isOpen={isNavigatorOpen}
+        onToggle={() => setIsNavigatorOpen((prev) => !prev)}
+      />
+
       {/* Progress Bar */}
       <div style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600 }}>
-          <span>Câu hỏi {currentIndex + 1} / {questions.length}</span>
-          <span>{Math.round(((currentIndex) / questions.length) * 100)}%</span>
+          <span>Câu hỏi {currentIndex + 1} / {safeQuestions.length}</span>
+          <span>{progressPercent}%</span>
         </div>
         <div 
           role="progressbar" 
-          aria-valuenow={Math.round(((currentIndex) / questions.length) * 100)} 
+          aria-valuenow={progressPercent} 
           aria-valuemin={0} 
           aria-valuemax={100}
           style={{ width: '100%', height: '8px', backgroundColor: 'var(--border-color)', borderRadius: '4px', overflow: 'hidden' }}
@@ -271,7 +340,7 @@ export default function QuizInterface({
           <div style={{ 
             height: '100%', 
             backgroundColor: 'var(--primary-color)', 
-            width: `${((currentIndex) / questions.length) * 100}%`,
+            width: `${progressPercent}%`,
             transition: 'width 0.3s ease'
           }}></div>
         </div>
@@ -279,16 +348,16 @@ export default function QuizInterface({
 
       {/* Question Area */}
       <div style={{ marginBottom: '2rem' }}>
-        <h2 style={{ fontSize: '1.4rem', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.4rem', lineHeight: 1.5, marginBottom: '1.5rem', wordBreak: 'break-word', overflowWrap: 'break-word' }}>
           {currentQuestion.text}
         </h2>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }} role="radiogroup" aria-label="Lựa chọn đáp án">
-          {currentQuestion.options.map((option) => {
-            let isSelected = selectedAnswer === option.label;
-            let isCorrectOption = option.label === currentQuestion.correctAnswer;
+          {(currentQuestion.options || []).map((option) => {
+            const isSelected = selectedAnswer === option.label;
+            const isCorrectOption = option.label === currentQuestion.correctAnswer;
             
-            let buttonStyle: React.CSSProperties = {
+            const buttonStyle: React.CSSProperties = {
               padding: '1rem 1.5rem',
               borderRadius: '12px',
               borderWidth: '2px',
@@ -297,13 +366,15 @@ export default function QuizInterface({
               backgroundColor: 'var(--surface-color)',
               cursor: hasAnsweredCurrent ? 'default' : 'pointer',
               display: 'flex',
-              alignItems: 'center',
+              alignItems: 'flex-start',
               gap: '1rem',
               transition: 'all 0.2s',
               textAlign: 'left' as const,
               width: '100%',
               fontSize: '1rem',
-              color: 'var(--text-color)'
+              color: 'var(--text-color)',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word'
             };
 
             if (hasAnsweredCurrent) {
@@ -325,13 +396,14 @@ export default function QuizInterface({
                 style={buttonStyle}
                 onClick={() => handleSelectOption(option.label)}
                 disabled={hasAnsweredCurrent}
-                aria-pressed={isSelected}
                 role="radio"
                 aria-checked={isSelected}
               >
                 <span style={{ 
                   display: 'flex', alignItems: 'center', justifyContent: 'center',
                   width: '32px', height: '32px', borderRadius: '50%',
+                  flexShrink: 0,
+                  marginTop: '2px',
                   backgroundColor: (hasAnsweredCurrent && (isCorrectOption || isSelected)) ? 'transparent' : 'var(--border-color)',
                   fontWeight: 700
                 }}>
@@ -339,41 +411,54 @@ export default function QuizInterface({
                    hasAnsweredCurrent && isSelected ? <XCircle color="var(--error-color)" aria-label="Sai" /> : 
                    option.label}
                 </span>
-                <span style={{ flex: 1 }}>{option.text}</span>
+                <span style={{ flex: 1, wordBreak: 'break-word', overflowWrap: 'break-word', lineHeight: 1.5 }}>{option.text}</span>
               </button>
             );
           })}
         </div>
       </div>
 
-      {/* Explanation & Next Button */}
-      {hasAnsweredCurrent && (
-        <div className="animate-fade-in">
-          {currentQuestion.explanation && (
-            <div style={{ 
-              padding: '1.25rem', 
-              borderRadius: '12px', 
-              backgroundColor: isCorrect ? 'var(--success-bg)' : 'var(--error-bg)',
-              color: isCorrect ? 'var(--success-color)' : 'var(--error-color)',
-              marginBottom: '1.5rem',
-              border: `1px solid ${isCorrect ? 'var(--success-color)' : 'var(--error-color)'}`
-            }}>
-              <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                {isCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
-                {isCorrect ? 'Chính xác!' : 'Chưa chính xác!'}
-              </h4>
-              <p style={{ color: 'var(--text-color)' }}>{currentQuestion.explanation}</p>
-            </div>
-          )}
+      {/* Explanation & Bidirectional Navigation Buttons (F11 & F12) */}
+      <div>
+        {hasAnsweredCurrent && currentQuestion.explanation && (
+          <div className="animate-fade-in" style={{ 
+            padding: '1.25rem', 
+            borderRadius: '12px', 
+            backgroundColor: isCorrect ? 'var(--success-bg)' : 'var(--error-bg)',
+            color: isCorrect ? 'var(--success-color)' : 'var(--error-color)',
+            marginBottom: '1.5rem',
+            border: `1px solid ${isCorrect ? 'var(--success-color)' : 'var(--error-color)'}`,
+            wordBreak: 'break-word',
+            overflowWrap: 'break-word'
+          }}>
+            <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              {isCorrect ? <CheckCircle2 size={20} /> : <XCircle size={20} />}
+              {isCorrect ? 'Chính xác!' : 'Chưa chính xác!'}
+            </h4>
+            <p style={{ color: 'var(--text-color)' }}>{currentQuestion.explanation}</p>
+          </div>
+        )}
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button className="btn-primary" onClick={handleNext}>
-              {currentIndex < questions.length - 1 ? 'Câu tiếp theo' : 'Xem kết quả'} 
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginTop: '1rem' }}>
+          {currentIndex > 0 ? (
+            <button 
+              type="button"
+              className="btn-secondary" 
+              onClick={handlePrev}
+              aria-label="Câu trước"
+            >
+              <ChevronLeft size={20} /> Câu trước
+            </button>
+          ) : <div />}
+
+          {hasAnsweredCurrent && (
+            <button type="button" className="btn-primary" onClick={handleNext}>
+              {currentIndex < safeQuestions.length - 1 ? 'Câu tiếp theo' : 'Xem kết quả'} 
               <ChevronRight size={20} />
             </button>
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

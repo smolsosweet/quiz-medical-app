@@ -4,11 +4,11 @@
   --text-color: #0f172a;
   --text-muted: #64748b;
   --surface-color: #ffffff;
-  --surface-glass: rgba(255, 255, 255, 0.7);
+  --surface-glass: rgba(255, 255, 255, 0.75);
   --border-color: #e2e8f0;
   
-  --primary-color: #3b82f6;
-  --primary-hover: #2563eb;
+  --primary-color: #0284c7;
+  --primary-hover: #0369a1;
   
   --success-color: #10b981;
   --success-bg: #d1fae5;
@@ -17,7 +17,7 @@
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+  --shadow-glass: 0 8px 32px 0 rgba(15, 23, 42, 0.08);
 }
 
 [data-theme='dark'] {
@@ -26,11 +26,11 @@
   --text-color: #f8fafc;
   --text-muted: #94a3b8;
   --surface-color: #1e293b;
-  --surface-glass: rgba(30, 41, 59, 0.9); /* Tăng độ mờ cho dark mode để dễ nhìn */
+  --surface-glass: rgba(15, 23, 42, 0.75);
   --border-color: #334155;
   
-  --primary-color: #60a5fa;
-  --primary-hover: #3b82f6;
+  --primary-color: #38bdf8;
+  --primary-hover: #0284c7;
 
   --success-color: #34d399;
   --success-bg: rgba(16, 185, 129, 0.2);
@@ -39,7 +39,7 @@
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.35);
 }
 
 * {
@@ -53,14 +53,21 @@ body {
   background-color: var(--bg-color);
   color: var(--text-color);
   transition: background-color 0.5s ease, color 0.5s ease;
-  height: 100dvh;
-  overflow: hidden; /* Cấm cuộn trang ngoài cùng */
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
+  overflow-x: hidden;
+  overflow-y: auto;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.15) 0px, transparent 50%);
+    radial-gradient(at 0% 0%, rgba(2, 132, 199, 0.08) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(15, 23, 42, 0.04) 0px, transparent 50%);
   background-attachment: fixed;
+}
+
+[data-theme='dark'] body {
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.25) 0px, transparent 50%);
 }
 
 /* Typography */
@@ -72,7 +79,7 @@ h1, h2, h3, h4, h5, h6 {
 
 h1 {
   font-size: 2.5rem;
-  background: linear-gradient(to right, var(--primary-color), #8b5cf6);
+  background: linear-gradient(135deg, var(--primary-color), #2563eb);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -83,18 +90,29 @@ h1 {
   background: var(--surface-glass);
   backdrop-filter: blur(24px) saturate(180%);
   -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.15); /* Mỏng nhẹ chuẩn glass */
+  border: 1px solid rgba(226, 232, 240, 0.8);
   border-radius: 20px;
   box-shadow: 
     var(--shadow-glass),
-    inset 0 1px 0 rgba(255, 255, 255, 0.1); /* Inner refraction */
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
   padding: 2rem;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease, border-color 0.3s ease;
 }
 .glass-panel:hover {
   box-shadow: 
-    0 12px 40px 0 rgba(31, 38, 135, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 12px 40px 0 rgba(15, 23, 42, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+[data-theme='dark'] .glass-panel {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    var(--shadow-glass),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+[data-theme='dark'] .glass-panel:hover {
+  box-shadow: 
+    0 12px 40px 0 rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
 .btn-primary, .btn-secondary {
@@ -159,18 +177,65 @@ h1 {
 .input-field:focus {
   outline: none;
   border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.2);
 }
 
 .main-container {
-  max-width: 1000px; /* Tăng độ rộng để chứa 2 cột */
+  max-width: 1000px;
   margin: 0 auto;
   padding: 2rem;
   width: 100%;
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; /* Cuộn bên trong container */
+}
+
+/* Sticky Header Style */
+header.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--surface-glass);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  border-bottom: 1px solid var(--border-color);
+}
+
+/* Bento Grid System (F08) */
+.bento-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .bento-grid {
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+  }
+  .bento-col-7 {
+    grid-column: span 7;
+  }
+  .bento-col-5 {
+    grid-column: span 5;
+  }
+  .bento-col-12 {
+    grid-column: span 12;
+  }
+}
+
+.bento-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.bento-card:hover {
+  border-color: var(--primary-color);
 }
 
 /* Tinh chỉnh thanh cuộn cho webkit */
@@ -206,6 +271,17 @@ h1 {
   border-color: var(--primary-color) !important;
 }
 
+/* Accessibility: Reduced Transparency Fallback (F09) */
+@media (prefers-reduced-transparency: reduce) {
+  .glass-panel,
+  header.app-header,
+  header {
+    background: var(--surface-color) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
 /* Responsive Breakpoints */
 @media (max-width: 600px) {
   h1 {
@@ -222,7 +298,7 @@ h1 {
   }
 }
 
-/* Print Styles */
+/* Print Styles (F06 & F07) */
 @media print {
   @page {
     margin: 1.5cm;
@@ -230,22 +306,52 @@ h1 {
   body {
     background: white !important;
     color: black !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+  }
+  .main-container {
+    height: auto !important;
+    overflow: visible !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
   body * {
     visibility: hidden;
   }
-  #review-section, #review-section * {
+  .glass-panel,
+  #review-section, 
+  #review-section * {
     visibility: visible;
+  }
+  .glass-panel {
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
   }
   #review-section {
     position: relative;
     width: 100%;
-    padding: 0;
-    margin: 0;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
   }
-  .no-print, header, .main-container > :not(#review-section) {
+  .question-card,
+  .review-question-card {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+  .no-print,
+  header,
+  .app-header {
     display: none !important;
   }
 }

@@ -1,10 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import UploadConfig from "@/components/UploadConfig";
 import QuizInterface from "@/components/QuizInterface";
 import { Question, QuizSession, QuizRound, AnswerLabel } from "@/types";
+import { loadSessionsFromStorage, saveSessionsToStorage } from "@/lib/storage";
+
+interface GenerateApiResponse {
+  questions?: Question[];
+  error?: string;
+}
 
 export default function Home() {
   const [questions, setQuestions] = useState<Question[] | null>(null);
@@ -12,6 +18,7 @@ export default function Home() {
   // History State
   const [sessions, setSessions] = useState<QuizSession[]>([]);
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
+  const [isHydrated, setIsHydrated] = useState(false);
   
   // Accumulated current session data
   const [currentRounds, setCurrentRounds] = useState<QuizRound[]>([]);
@@ -28,6 +35,23 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string>("");
   const [quizId, setQuizId] = useState(0);
+
+  // Hydrate sessions from localStorage on mount
+  useEffect(() => {
+    const stored = loadSessionsFromStorage();
+    queueMicrotask(() => {
+      if (stored.length > 0) {
+        setSessions(stored);
+      }
+      setIsHydrated(true);
+    });
+  }, []);
+
+  // Sync sessions to localStorage whenever sessions state changes (after hydration)
+  useEffect(() => {
+    if (!isHydrated) return;
+    saveSessionsToStorage(sessions);
+  }, [sessions, isHydrated]);
 
   const handleGenerate = async (numQ: number, isAddingMore = false) => {
     if (files.length === 0) {
@@ -64,10 +88,10 @@ export default function Home() {
       });
 
       const resText = await res.text();
-      let data: any;
+      let data: GenerateApiResponse = {};
       try {
-        data = JSON.parse(resText);
-      } catch (parseErr) {
+        data = JSON.parse(resText) as GenerateApiResponse;
+      } catch {
         if (resText.includes("<!DOCTYPE") || resText.includes("<html") || res.status === 504 || res.status === 502) {
           throw new Error("Quá thời gian xử lý của Server (Timeout). Tài liệu quá dài khiến AI xử lý lố 100 giây. Vui lòng thử các cách sau: 1) Chọn phiên bản 'Gemini 2.5 Flash Lite' để chạy nhanh hơn. 2) Cắt bớt tài liệu. 3) Giảm số lượng câu hỏi.");
         }
@@ -83,7 +107,10 @@ export default function Home() {
           setPreviousQuestionsText(updatedPrevText);
         }
         setQuizId(prev => prev + 1);
-        if (!currentSessionId) {
+        if (!isAddingMore) {
+          setCurrentSessionId(Date.now().toString());
+          setCurrentRounds([]);
+        } else if (!currentSessionId) {
           setCurrentSessionId(Date.now().toString());
         }
       } else {
@@ -144,9 +171,15 @@ export default function Home() {
 
   const handleViewHistory = (session: QuizSession) => {
     setCurrentSessionId(session.id);
-    setCurrentRounds(session.rounds);
+    setCurrentRounds(Array.isArray(session.rounds) ? session.rounds : []);
     setIsReviewMode(true);
     setQuestions(null); // Mở mode Review
+  };
+
+  const handleBackToDashboard = () => {
+    setIsReviewMode(false);
+    setCurrentSessionId(null);
+    setCurrentRounds([]);
   };
 
   return (
@@ -178,9 +211,11 @@ export default function Home() {
             isGenerating={isGenerating}
             error={error}
             onNewFile={handleNewFile}
+            onBackToDashboard={handleBackToDashboard}
           />
         )}
       </main>
     </>
   );
 }
+
